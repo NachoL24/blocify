@@ -2,13 +2,13 @@
 Proyecto para la materia Aplicaciones Moviles.
 
 ## Descripcion
-Spotify clon con sub-playlists
+Spotify clon con sub-playlists.
 
 ## Integrantes
-- Guerra, Lucio
-- Eliseche, Martin
-- Lanzzavecchia Cespedes, Ignacio
-- Wacelinka, Ariana
+- Guerra, Lucio.
+- Eliseche, Martin.
+- Lanzzavecchia Cespedes, Ignacio.
+- Wacelinka, Ariana.
 
 ## Getting Started
 
