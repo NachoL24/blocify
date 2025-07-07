@@ -1,6 +1,14 @@
 # blocify
+Proyecto para la materia Aplicaciones Moviles.
 
-A new Flutter project.
+## Descripcion
+Spotify clon con sub-playlists
+
+## Integrantes
+- Guerra, Lucio
+- Eliseche, Martin
+- Lanzzavecchia Cespedes, Ignacio
+- Wacelinka, Ariana
 
 ## Getting Started
 
