@@ -1,24 +1,42 @@
-# blocify
+# Blocify🎵
 Proyecto para la materia Aplicaciones Moviles.
 
 ## Descripcion
-Spotify clon con sub-playlists.
+Proyecto para Aplicaciones Moviles. Un clon de Spotify desarrollado con Flutter que incluye sub-playlists.
 
 ## Integrantes
-- Guerra, Lucio.
-- Eliseche, Martin.
-- Lanzzavecchia Cespedes, Ignacio.
-- Wacelinka, Ariana.
+- GUERRA, Lucio.
+- ELISECHE, Martin.
+- LANZZAVECCHIA CESPEDES, Ignacio.
+- WACELINKA, Ariana.
 
-## Getting Started
+## Requisitos Previos
 
-This project is a starting point for a Flutter application.
+### 1. Flutter SDK
+1. Descargá Flutter desde [flutter.dev](https://flutter.dev/docs/get-started/install/windows)
+2. Extraé en `C:\\flutter` y agrega `C:\\flutter\\bin` al PATH
+3. Reiniciá tu terminal
 
-A few resources to get you started if this is your first Flutter project:
+### 2. Verificar instalación
+```powershell
+flutter doctor
+```
+
+## Instalación y Ejecución
+
+### 1. Instalar dependencias
+```powershell
+flutter pub get
+```
+
+### 2. Correr la aplicación
+```powershell
+flutter run
+```
+
+## Recursos de Flutter
 
 - [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
 - [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- [Flutter Documentation](https://docs.flutter.dev/)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.

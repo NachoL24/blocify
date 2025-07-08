@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 class HomeScreen extends StatelessWidget {
   final String username;
@@ -8,22 +9,22 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: context.colors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF121212),
+        backgroundColor: context.colors.background,
         elevation: 0,
         title: Row(
           children: [
             Icon(
               Icons.music_note_rounded,
-              color: const Color(0xFF1DB954),
+              color: context.primaryColor,
               size: 28,
             ),
             const SizedBox(width: 8),
-            const Text(
+            Text(
               'Blocify',
               style: TextStyle(
-                color: Colors.white,
+                color: context.colors.text,
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
               ),
@@ -32,9 +33,8 @@ class HomeScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.person, color: Colors.white),
+            icon: Icon(Icons.person, color: context.colors.text),
             onPressed: () {
-              // Aquí implementarás el perfil del usuario
             },
           ),
         ],
@@ -44,11 +44,10 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Saludo personalizado
             Text(
-              'Hola, $username 👋',
-              style: const TextStyle(
-                color: Colors.white,
+              'Hola, $username!',
+              style: TextStyle(
+                color: context.colors.text,
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
               ),
@@ -56,21 +55,20 @@ class HomeScreen extends StatelessWidget {
             
             const SizedBox(height: 8),
             
-            const Text(
+            Text(
               '¿Qué quieres escuchar hoy?',
               style: TextStyle(
-                color: Colors.grey,
+                color: context.colors.secondaryText,
                 fontSize: 16,
               ),
             ),
             
             const SizedBox(height: 32),
             
-            // Sección de acciones rápidas
-            const Text(
+            Text(
               'Acceso rápido',
               style: TextStyle(
-                color: Colors.white,
+                color: context.colors.text,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -110,7 +108,6 @@ class HomeScreen extends StatelessWidget {
             
             const SizedBox(height: 32),
             
-            // Sección de playlists
             const Text(
               'Tus Playlists',
               style: TextStyle(
@@ -163,9 +160,9 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: const Color(0xFF282828),
-        selectedItemColor: const Color(0xFF1DB954),
-        unselectedItemColor: Colors.grey,
+        backgroundColor: context.colors.drawer,
+        selectedItemColor: context.primaryColor,
+        unselectedItemColor: context.colors.secondaryText,
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
@@ -206,7 +203,7 @@ class _QuickActionCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF282828),
+          color: context.colors.card1,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -214,14 +211,14 @@ class _QuickActionCard extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: const Color(0xFF1DB954),
+              color: context.primaryColor,
               size: 32,
             ),
             const SizedBox(height: 12),
             Text(
               title,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: context.colors.text,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -229,8 +226,8 @@ class _QuickActionCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               subtitle,
-              style: const TextStyle(
-                color: Colors.grey,
+              style: TextStyle(
+                color: context.colors.secondaryText,
                 fontSize: 12,
               ),
             ),
@@ -263,26 +260,26 @@ class _PlaylistTile extends StatelessWidget {
         width: 56,
         height: 56,
         decoration: BoxDecoration(
-          color: isCreate ? const Color(0xFF1DB954) : const Color(0xFF282828),
+          color: isCreate ? context.primaryColor : context.colors.card1,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(
           icon,
-          color: isCreate ? Colors.black : Colors.white,
+          color: isCreate ? context.permanentWhite : context.colors.text,
           size: 28,
         ),
       ),
       title: Text(
         title,
         style: TextStyle(
-          color: isCreate ? const Color(0xFF1DB954) : Colors.white,
+          color: isCreate ? context.primaryColor : context.colors.text,
           fontWeight: FontWeight.w500,
         ),
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(
-          color: Colors.grey,
+        style: TextStyle(
+          color: context.colors.secondaryText,
           fontSize: 14,
         ),
       ),

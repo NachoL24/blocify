@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
+import '../theme/app_colors.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -28,14 +29,12 @@ class _LoginScreenState extends State<LoginScreen> {
         _isLoading = true;
       });
 
-      // Simular un delay de login
       await Future.delayed(const Duration(seconds: 2));
 
       setState(() {
         _isLoading = false;
       });
 
-      // Navegar a la pantalla de inicio
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => HomeScreen(username: _usernameController.text),
@@ -47,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212), // Dark background similar to Spotify
+      backgroundColor: context.colors.background,
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: SingleChildScrollView(
@@ -58,29 +57,28 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-              // Logo y título
               Column(
                 children: [
                   Icon(
                     Icons.music_note_rounded,
                     size: 80,
-                    color: const Color(0xFF1DB954), // Spotify green
+                    color: context.primaryColor,
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Blocify',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: context.colors.text,
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.2,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Tu música, tus playlists',
                     style: TextStyle(
-                      color: Colors.grey,
+                      color: context.colors.secondaryText,
                       fontSize: 16,
                     ),
                   ),
@@ -89,29 +87,27 @@ class _LoginScreenState extends State<LoginScreen> {
               
               const SizedBox(height: 60),
               
-              // Formulario de login
               Form(
                 key: _formKey,
                 child: Column(
                   children: [
-                    // Campo de usuario
                     TextFormField(
                       controller: _usernameController,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: context.colors.text),
                       decoration: InputDecoration(
                         labelText: 'Usuario',
-                        labelStyle: const TextStyle(color: Colors.grey),
-                        prefixIcon: const Icon(Icons.person, color: Colors.grey),
+                        labelStyle: TextStyle(color: context.colors.secondaryText),
+                        prefixIcon: Icon(Icons.person, color: context.colors.secondaryText),
                         filled: true,
-                        fillColor: const Color(0xFF282828),
+                        fillColor: context.colors.lightGray,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFF1DB954),
+                          borderSide: BorderSide(
+                            color: context.primaryColor,
                             width: 2,
                           ),
                         ),
@@ -126,19 +122,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     
                     const SizedBox(height: 20),
                     
-                    // Campo de contraseña
                     TextFormField(
                       controller: _passwordController,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: context.colors.text),
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         labelText: 'Contraseña',
-                        labelStyle: const TextStyle(color: Colors.grey),
-                        prefixIcon: const Icon(Icons.lock, color: Colors.grey),
+                        labelStyle: TextStyle(color: context.colors.secondaryText),
+                        prefixIcon: Icon(Icons.lock, color: context.colors.secondaryText),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                            color: Colors.grey,
+                            color: context.colors.secondaryText,
                           ),
                           onPressed: () {
                             setState(() {
@@ -147,15 +142,15 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                         ),
                         filled: true,
-                        fillColor: const Color(0xFF282828),
+                        fillColor: context.colors.lightGray,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFF1DB954),
+                          borderSide: BorderSide(
+                            color: context.primaryColor,
                             width: 2,
                           ),
                         ),
@@ -173,26 +168,25 @@ class _LoginScreenState extends State<LoginScreen> {
                     
                     const SizedBox(height: 32),
                     
-                    // Botón de login
                     SizedBox(
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1DB954),
-                          foregroundColor: Colors.white,
+                          backgroundColor: context.primaryColor,
+                          foregroundColor: context.permanentWhite,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(25),
                           ),
                           elevation: 0,
                         ),
                         child: _isLoading
-                            ? const SizedBox(
+                            ? SizedBox(
                                 height: 20,
                                 width: 20,
                                 child: CircularProgressIndicator(
-                                  color: Colors.white,
+                                  color: context.permanentWhite,
                                   strokeWidth: 2,
                                 ),
                               )
@@ -208,7 +202,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     
                     const SizedBox(height: 24),
                     
-                    // Enlaces adicionales
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -220,10 +213,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             );
                           },
-                          child: const Text(
+                          child: Text(
                             '¿No tienes cuenta? Regístrate',
                             style: TextStyle(
-                              color: Color(0xFF1DB954),
+                              color: context.primaryColor,
                               fontSize: 14,
                             ),
                           ),
@@ -241,10 +234,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         );
                       },
-                      child: const Text(
+                      child: Text(
                         '¿Olvidaste tu contraseña?',
                         style: TextStyle(
-                          color: Colors.grey,
+                          color: context.colors.secondaryText,
                           fontSize: 14,
                         ),
                       ),
