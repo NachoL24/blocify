@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
 class AppTheme {
-  
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      
       colorScheme: ColorScheme.light(
         primary: AppColors.lightPrimary,
         secondary: AppColors.lightSecondaryButton,
@@ -19,9 +17,7 @@ class AppTheme {
         onBackground: AppColors.lightText,
         outline: AppColors.lightLightGray,
       ),
-      
       scaffoldBackgroundColor: AppColors.lightBackground,
-      
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.lightBackground,
         foregroundColor: AppColors.lightText,
@@ -34,7 +30,6 @@ class AppTheme {
           fontFamily: 'Roboto',
         ),
       ),
-      
       cardTheme: CardThemeData(
         color: AppColors.lightCard1,
         elevation: 2,
@@ -42,7 +37,6 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
-      
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.lightPrimary,
@@ -54,14 +48,12 @@ class AppTheme {
           ),
         ),
       ),
-      
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.lightPrimary,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
       ),
-      
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.lightSecondaryButton,
@@ -72,7 +64,6 @@ class AppTheme {
           ),
         ),
       ),
-      
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.lightLightGray,
@@ -87,30 +78,30 @@ class AppTheme {
           borderSide: BorderSide(color: AppColors.lightPrimary, width: 2),
         ),
       ),
-      
       drawerTheme: DrawerThemeData(
         backgroundColor: AppColors.lightDrawer,
       ),
-      
       textTheme: TextTheme(
-        headlineLarge: TextStyle(color: AppColors.lightText, fontWeight: FontWeight.bold),
-        headlineMedium: TextStyle(color: AppColors.lightText, fontWeight: FontWeight.bold),
-        headlineSmall: TextStyle(color: AppColors.lightText, fontWeight: FontWeight.w600),
+        headlineLarge:
+            TextStyle(color: AppColors.lightText, fontWeight: FontWeight.bold),
+        headlineMedium:
+            TextStyle(color: AppColors.lightText, fontWeight: FontWeight.bold),
+        headlineSmall:
+            TextStyle(color: AppColors.lightText, fontWeight: FontWeight.w600),
         bodyLarge: TextStyle(color: AppColors.lightText),
         bodyMedium: TextStyle(color: AppColors.lightText),
         bodySmall: TextStyle(color: AppColors.lightSecondaryText),
-        labelLarge: TextStyle(color: AppColors.lightText, fontWeight: FontWeight.w500),
+        labelLarge:
+            TextStyle(color: AppColors.lightText, fontWeight: FontWeight.w500),
       ),
-      
       fontFamily: 'Roboto',
     );
   }
-  
+
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      
       colorScheme: ColorScheme.dark(
         primary: AppColors.darkPrimary,
         secondary: AppColors.darkSecondaryButton,
@@ -122,9 +113,7 @@ class AppTheme {
         onBackground: AppColors.darkText,
         outline: AppColors.darkLightGray,
       ),
-      
       scaffoldBackgroundColor: AppColors.darkBackground,
-      
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.darkBackground,
         foregroundColor: AppColors.darkText,
@@ -137,7 +126,6 @@ class AppTheme {
           fontFamily: 'Roboto',
         ),
       ),
-      
       cardTheme: CardThemeData(
         color: AppColors.darkCard1,
         elevation: 2,
@@ -145,7 +133,6 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
-      
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.darkPrimary,
@@ -157,14 +144,12 @@ class AppTheme {
           ),
         ),
       ),
-      
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.darkPrimary,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
       ),
-      
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.darkSecondaryButton,
@@ -175,7 +160,6 @@ class AppTheme {
           ),
         ),
       ),
-      
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.darkLightGray,
@@ -190,21 +174,22 @@ class AppTheme {
           borderSide: BorderSide(color: AppColors.darkPrimary, width: 2),
         ),
       ),
-      
       drawerTheme: DrawerThemeData(
         backgroundColor: AppColors.darkDrawer,
       ),
-      
       textTheme: TextTheme(
-        headlineLarge: TextStyle(color: AppColors.darkText, fontWeight: FontWeight.bold),
-        headlineMedium: TextStyle(color: AppColors.darkText, fontWeight: FontWeight.bold),
-        headlineSmall: TextStyle(color: AppColors.darkText, fontWeight: FontWeight.w600),
+        headlineLarge:
+            TextStyle(color: AppColors.darkText, fontWeight: FontWeight.bold),
+        headlineMedium:
+            TextStyle(color: AppColors.darkText, fontWeight: FontWeight.bold),
+        headlineSmall:
+            TextStyle(color: AppColors.darkText, fontWeight: FontWeight.w600),
         bodyLarge: TextStyle(color: AppColors.darkText),
         bodyMedium: TextStyle(color: AppColors.darkText),
         bodySmall: TextStyle(color: AppColors.darkSecondaryText),
-        labelLarge: TextStyle(color: AppColors.darkText, fontWeight: FontWeight.w500),
+        labelLarge:
+            TextStyle(color: AppColors.darkText, fontWeight: FontWeight.w500),
       ),
-      
       fontFamily: 'Roboto',
     );
   }

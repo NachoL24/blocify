@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 class AppColors {
   static const Color lightSecondaryButton = Color(0xFF333333);
   static const Color lightPermanentWhite = Color(0xFFFFFFFF);
@@ -22,7 +23,6 @@ class AppColors {
   static const Color darkCard1 = Color(0x80323232);
   static const Color darkSecondaryText = Color(0xFFAD96C2);
 
-
   static Color primary = lightPrimary;
   static Color permanentWhite = lightPermanentWhite;
   static AppColorScheme light = const AppColorScheme(
@@ -37,7 +37,7 @@ class AppColors {
     card1: lightCard1,
     secondaryText: lightSecondaryText,
   );
-  
+
   static AppColorScheme dark = const AppColorScheme(
     secondaryButton: darkSecondaryButton,
     permanentWhite: darkPermanentWhite,
@@ -77,11 +77,13 @@ class AppColorScheme {
   final Color card1;
   final Color secondaryText;
 }
+
 extension AppColorsExtension on BuildContext {
   AppColorScheme get colors {
     final brightness = Theme.of(this).brightness;
     return brightness == Brightness.dark ? AppColors.dark : AppColors.light;
   }
+
   Color get primaryColor => AppColors.primary;
   Color get permanentWhite => AppColors.permanentWhite;
 }
