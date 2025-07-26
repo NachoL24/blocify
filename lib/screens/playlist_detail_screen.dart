@@ -319,13 +319,35 @@ class _SongTile extends StatelessWidget {
         width: 48,
         height: 48,
         decoration: BoxDecoration(
-          color: _getRandomColor(),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(
-          Icons.music_note,
-          color: Colors.white,
-          size: 24,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: song.picture != null && song.picture!.isNotEmpty
+              ? Image.memory(
+                  song.picture!,
+                  width: 48,
+                  height: 48,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: _getRandomColor(),
+                      child: Icon(
+                        Icons.music_note,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    );
+                  },
+                )
+              : Container(
+                  color: _getRandomColor(),
+                  child: Icon(
+                    Icons.music_note,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
         ),
       ),
       title: Text(

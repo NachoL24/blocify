@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+import 'package:flutter/services.dart';
 import '../models/playlist.dart';
 import '../models/playlist_summary.dart';
 import '../models/song.dart';
@@ -33,6 +35,9 @@ class PlaylistService {
     // Simular delay de red
     await Future.delayed(const Duration(milliseconds: 300));
     
+    // Cargar la imagen mock
+    final Uint8List songPictureBytes = await _loadMockSongPicture();
+    
     // Mock de datos de playlist con canciones
     final Map<String, dynamic> mockPlaylistData = {
       "id": id,
@@ -47,7 +52,8 @@ class PlaylistService {
           "album": "Platónicos",
           "albumId": "album-456",
           "duration": 21,
-          "id": 2
+          "id": 2,
+          "picture": songPictureBytes.toList()
         },
         {
           "name": "Fiel",
@@ -57,7 +63,8 @@ class PlaylistService {
           "album": "La Mafia",
           "albumId": "album-789",
           "duration": 18,
-          "id": 3
+          "id": 3,
+          "picture": songPictureBytes.toList()
         },
         {
           "name": "Con Altura",
@@ -67,12 +74,25 @@ class PlaylistService {
           "album": "Con Altura",
           "albumId": "album-012",
           "duration": 22,
-          "id": 4
+          "id": 4,
+          "picture": songPictureBytes.toList()
         }
       ]
     };
 
     return Playlist.fromJson(mockPlaylistData);
+  }
+
+  // Método para cargar la imagen mock desde assets
+  Future<Uint8List> _loadMockSongPicture() async {
+    try {
+      final ByteData data = await rootBundle.load('lib/services/song-picture.jpeg');
+      return data.buffer.asUint8List();
+    } catch (e) {
+      // Si no se puede cargar la imagen, retornar bytes vacíos
+      print('Error loading song picture: $e');
+      return Uint8List(0);
+    }
   }
 
   String _getPlaylistNameById(int id) {

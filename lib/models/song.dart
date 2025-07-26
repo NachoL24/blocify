@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 class Song {
   final String name;
   final String itemId;
@@ -7,6 +9,7 @@ class Song {
   final String albumId;
   final int duration;
   final int id;
+  final Uint8List? picture;
 
   Song({
     required this.name,
@@ -17,6 +20,7 @@ class Song {
     required this.albumId,
     required this.duration,
     required this.id,
+    this.picture,
   });
 
   factory Song.fromJson(Map<String, dynamic> json) {
@@ -29,6 +33,7 @@ class Song {
       albumId: json['albumId'],
       duration: json['duration'],
       id: json['id'],
+      picture: json['picture'] != null ? Uint8List.fromList(List<int>.from(json['picture'])) : null,
     );
   }
 
@@ -42,6 +47,7 @@ class Song {
       'albumId': albumId,
       'duration': duration,
       'id': id,
+      'picture': picture?.toList(),
     };
   }
 }
