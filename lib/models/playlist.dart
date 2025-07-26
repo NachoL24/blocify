@@ -1,8 +1,10 @@
+import 'song.dart';
+
 class Playlist {
   final int id;
   final String name;
   final String description;
-  final List<dynamic> songs;
+  final List<Song> songs;
 
   Playlist({
     required this.id,
@@ -16,7 +18,9 @@ class Playlist {
       id: json['id'],
       name: json['name'],
       description: json['description'],
-      songs: json['songs'] ?? [],
+      songs: (json['songs'] as List<dynamic>?)
+          ?.map((songJson) => Song.fromJson(songJson))
+          .toList() ?? [],
     );
   }
 
@@ -25,7 +29,7 @@ class Playlist {
       'id': id,
       'name': name,
       'description': description,
-      'songs': songs,
+      'songs': songs.map((song) => song.toJson()).toList(),
     };
   }
 }

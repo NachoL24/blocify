@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../services/auth0_service.dart';
 import '../services/playlist_service.dart';
-import '../models/playlist.dart';
+import '../models/playlist_summary.dart';
 import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,7 +16,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final Auth0Service _auth0Service = Auth0Service.instance;
   final PlaylistService _playlistService = PlaylistService.instance;
-  List<Playlist> _topPlaylists = [];
+  List<PlaylistSummary> _topPlaylists = [];
   bool _isLoadingPlaylists = true;
 
   @override
@@ -346,7 +346,7 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class _DiscoverCard extends StatelessWidget {
-  final Playlist playlist;
+  final PlaylistSummary playlist;
   final VoidCallback onTap;
 
   const _DiscoverCard({
