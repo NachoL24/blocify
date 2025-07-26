@@ -3,10 +3,39 @@ import '../theme/app_colors.dart';
 import '../services/auth0_service.dart';
 import 'login_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final String username;
   
   const HomeScreen({super.key, required this.username});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final Auth0Service _auth0Service = Auth0Service.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _auth0Service.addListener(_onAuthStateChanged);
+  }
+
+  @override
+  void dispose() {
+    _auth0Service.removeListener(_onAuthStateChanged);
+    super.dispose();
+  }
+
+  void _onAuthStateChanged() {
+    if (!_auth0Service.isAuthenticated && mounted) {
+      // Si el usuario ya no está autenticado, navegar al login
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        (route) => false,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +77,7 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Hola, $username!',
+              'Hola, ${widget.username}!',
               style: TextStyle(
                 color: context.colors.text,
                 fontSize: 28,
@@ -220,7 +249,7 @@ class HomeScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      username,
+                      widget.username,
                       style: TextStyle(
                         color: context.colors.text,
                         fontSize: 18,
@@ -259,13 +288,8 @@ class HomeScreen extends StatelessWidget {
 
   Future<void> _handleLogout(BuildContext context) async {
     try {
-      await Auth0Service.instance.logout();
-      if (context.mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-          (route) => false,
-        );
-      }
+      await _auth0Service.logout();
+      // La navegación se maneja automáticamente por el listener _onAuthStateChanged
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

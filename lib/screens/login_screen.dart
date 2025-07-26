@@ -18,16 +18,26 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
+    _auth0Service.addListener(_onAuthStateChanged);
     _checkExistingLogin();
   }
 
+  @override
+  void dispose() {
+    _auth0Service.removeListener(_onAuthStateChanged);
+    super.dispose();
+  }
+
+  void _onAuthStateChanged() {
+    if (_auth0Service.isAuthenticated && mounted) {
+      _navigateToHome();
+    }
+  }
+
   void _checkExistingLogin() async {
-    final isAuthenticated = await _auth0Service.isAuthenticated();
-    if (isAuthenticated && mounted) {
-      final credentials = await _auth0Service.getStoredCredentials();
-      if (credentials != null) {
-        _navigateToHome(credentials);
-      }
+    // El Auth0Service ya verifica el estado inicial automáticamente
+    if (_auth0Service.isAuthenticated && mounted) {
+      _navigateToHome();
     }
   }
 
@@ -40,7 +50,8 @@ class _LoginScreenState extends State<LoginScreen> {
       final credentials = await _auth0Service.login();
       
       if (credentials != null && mounted) {
-        _navigateToHome(credentials);
+        // La navegación se maneja automáticamente por el listener
+        // _navigateToHome() será llamado por _onAuthStateChanged
       } else if (mounted) {
         _showError('Error al iniciar sesión');
       }
@@ -57,9 +68,8 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _navigateToHome(Credentials credentials) {
-    final userProfile = _auth0Service.getUserProfileFromCredentials(credentials);
-    final username = userProfile?.name ?? userProfile?.email ?? 'Usuario';
+  void _navigateToHome() {
+    final username = _auth0Service.currentUsername;
     
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
