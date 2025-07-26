@@ -10,15 +10,15 @@ import '../widgets/profile_bottom_sheet.dart';
 import 'login_screen.dart';
 import 'search_screen.dart';
 
-class HomeScreen extends StatefulWidget {
+class MainScreen extends StatefulWidget {
   
-  const HomeScreen({super.key});
+  const MainScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<MainScreen> createState() => _MainScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _MainScreenState extends State<MainScreen> {
   final Auth0Service _auth0Service = Auth0Service.instance;
   final PlaylistService _playlistService = PlaylistService.instance;
   List<PlaylistSummary> _topPlaylists = [];
