@@ -100,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -332,7 +332,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _handleLogout(BuildContext context) async {
     try {
       await _auth0Service.logout();
-      // La navegación se maneja automáticamente por el listener _onAuthStateChanged
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -369,10 +368,10 @@ class _DiscoverCard extends StatelessWidget {
               width: 160,
               height: 160,
               decoration: BoxDecoration(
-                color: context.colors.card1,
+                color: context.colors.secondaryText,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: context.colors.lightGray.withOpacity(0.3),
+                  color: context.colors.primary.withOpacity(0.3),
                   width: 1,
                 ),
               ),
@@ -381,7 +380,7 @@ class _DiscoverCard extends StatelessWidget {
                   playlist.name,
                   style: TextStyle(
                     color: context.colors.text,
-                    fontSize: 14,
+                    fontSize: 28,
                     fontWeight: FontWeight.w600,
                   ),
                   textAlign: TextAlign.center,
@@ -391,69 +390,23 @@ class _DiscoverCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              playlist.name,
-              style: TextStyle(
-                color: context.colors.text,
-                fontSize: 12,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                playlist.name,
+                style: TextStyle(
+                  color: context.colors.text,
+                  fontSize: 12,
                 fontWeight: FontWeight.w500,
+                decoration: TextDecoration.underline,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
+            ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class _PlaylistTile extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final VoidCallback onTap;
-  final bool isCreate;
-
-  const _PlaylistTile({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.onTap,
-    this.isCreate = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          color: isCreate ? context.primaryColor : context.colors.card1,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(
-          icon,
-          color: isCreate ? context.permanentWhite : context.colors.text,
-          size: 28,
-        ),
-      ),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: isCreate ? context.primaryColor : context.colors.text,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(
-          color: context.colors.secondaryText,
-          fontSize: 14,
-        ),
-      ),
-      onTap: onTap,
     );
   }
 }
