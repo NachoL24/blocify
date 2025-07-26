@@ -5,6 +5,7 @@ import '../services/playlist_service.dart';
 import '../models/playlist_summary.dart';
 import 'login_screen.dart';
 import 'playlist_detail_screen.dart';
+import 'search_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   
@@ -23,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoadingTopPlaylists = true;
   bool _isLoadingDiscoverPlaylists = true;
   bool _isLoadingUserPlaylists = true;
+  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -121,11 +123,207 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  Widget _buildCurrentScreen() {
+    switch (_selectedIndex) {
+      case 0:
+        return _buildHomeContent();
+      case 1:
+        return const SearchScreen();
+      case 2:
+        return _buildLibraryContent();
+      default:
+        return _buildHomeContent();
+    }
+  }
+
+  Widget _buildHomeContent() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Hola, ${_auth0Service.currentUser?.givenName}!',
+            style: TextStyle(
+              color: context.colors.text,
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          
+          const SizedBox(height: 8),
+          
+          Text(
+            '¿Qué quieres escuchar hoy?',
+            style: TextStyle(
+              color: context.colors.secondaryText,
+              fontSize: 16,
+            ),
+          ),
+
+          const SizedBox(height: 32),
+          
+          Text(
+            'Top Playlists',
+            style: TextStyle(
+              color: context.colors.text,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          SizedBox(
+            height: 200,
+            child: _isLoadingTopPlaylists
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _topPlaylists.length,
+                    itemBuilder: (context, index) {
+                      final playlist = _topPlaylists[index];
+                      return _DiscoverCard(
+                        playlist: playlist,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PlaylistDetailScreen(
+                                playlistId: playlist.id,
+                                playlistName: playlist.name,
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+          ),
+          
+          const SizedBox(height: 32),
+          
+          Text(
+            'Discover',
+            style: TextStyle(
+              color: context.colors.text,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          SizedBox(
+            height: 200,
+            child: _isLoadingDiscoverPlaylists
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _discoverPlaylists.length,
+                    itemBuilder: (context, index) {
+                      final playlist = _discoverPlaylists[index];
+                      return _DiscoverCard(
+                        playlist: playlist,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PlaylistDetailScreen(
+                                playlistId: playlist.id,
+                                playlistName: playlist.name,
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+          ),
+          
+          const SizedBox(height: 32),
+          
+          const Text(
+            'Tus Playlists',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          SizedBox(
+            height: 200,
+            child: _isLoadingUserPlaylists
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _userPlaylists.length,
+                    itemBuilder: (context, index) {
+                      final playlist = _userPlaylists[index];
+                      return _DiscoverCard(
+                        playlist: playlist,
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Abriendo ${playlist.name}...'),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLibraryContent() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.library_music,
+            size: 64,
+            color: context.colors.secondaryText.withOpacity(0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Biblioteca',
+            style: TextStyle(
+              color: context.colors.text,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Próximamente...',
+            style: TextStyle(
+              color: context.colors.secondaryText,
+              fontSize: 16,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.colors.background,
-      appBar: AppBar(
+      appBar: _selectedIndex == 1 ? null : AppBar(
         backgroundColor: context.colors.background,
         elevation: 0,
         title: Row(
@@ -155,153 +353,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Hola, ${_auth0Service.currentUser?.givenName}!',
-              style: TextStyle(
-                color: context.colors.text,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            
-            const SizedBox(height: 8),
-            
-            Text(
-              '¿Qué quieres escuchar hoy?',
-              style: TextStyle(
-                color: context.colors.secondaryText,
-                fontSize: 16,
-              ),
-            ),
-
-            const SizedBox(height: 32),
-            
-            Text(
-              'Top Playlists',
-              style: TextStyle(
-                color: context.colors.text,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            SizedBox(
-              height: 200,
-              child: _isLoadingTopPlaylists
-                  ? const Center(child: CircularProgressIndicator())
-                  : ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _topPlaylists.length,
-                      itemBuilder: (context, index) {
-                        final playlist = _topPlaylists[index];
-                        return _DiscoverCard(
-                          playlist: playlist,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PlaylistDetailScreen(
-                                  playlistId: playlist.id,
-                                  playlistName: playlist.name,
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-            ),
-            
-            const SizedBox(height: 32),
-            
-            Text(
-              'Discover',
-              style: TextStyle(
-                color: context.colors.text,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            SizedBox(
-              height: 200,
-              child: _isLoadingDiscoverPlaylists
-                  ? const Center(child: CircularProgressIndicator())
-                  : ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _discoverPlaylists.length,
-                      itemBuilder: (context, index) {
-                        final playlist = _discoverPlaylists[index];
-                        return _DiscoverCard(
-                          playlist: playlist,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PlaylistDetailScreen(
-                                  playlistId: playlist.id,
-                                  playlistName: playlist.name,
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-            ),
-            
-            const SizedBox(height: 32),
-            
-            const Text(
-              'Tus Playlists',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            SizedBox(
-              height: 200,
-              child: _isLoadingUserPlaylists
-                  ? const Center(child: CircularProgressIndicator())
-                  : ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _userPlaylists.length,
-                      itemBuilder: (context, index) {
-                        final playlist = _userPlaylists[index];
-                        return _DiscoverCard(
-                          playlist: playlist,
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Abriendo ${playlist.name}...'),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-            ),
-          ],
-        ),
-      ),
+      body: _buildCurrentScreen(),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: context.colors.drawer,
         selectedItemColor: context.primaryColor,
         unselectedItemColor: context.colors.secondaryText,
         type: BottomNavigationBarType.fixed,
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
