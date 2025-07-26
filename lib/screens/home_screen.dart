@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../services/auth0_service.dart';
+import '../services/playlist_service.dart';
+import '../models/playlist.dart';
 import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -13,11 +15,15 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final Auth0Service _auth0Service = Auth0Service.instance;
+  final PlaylistService _playlistService = PlaylistService.instance;
+  List<Playlist> _topPlaylists = [];
+  bool _isLoadingPlaylists = true;
 
   @override
   void initState() {
     super.initState();
     _auth0Service.addListener(_onAuthStateChanged);
+    _loadTopPlaylists();
   }
 
   @override
@@ -33,6 +39,30 @@ class _HomeScreenState extends State<HomeScreen> {
         MaterialPageRoute(builder: (context) => const LoginScreen()),
         (route) => false,
       );
+    }
+  }
+
+  Future<void> _loadTopPlaylists() async {
+    try {
+      final playlists = await _playlistService.getTopPlaylists();
+      if (mounted) {
+        setState(() {
+          _topPlaylists = playlists;
+          _isLoadingPlaylists = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingPlaylists = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar playlists: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -93,11 +123,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 fontSize: 16,
               ),
             ),
-            
+
             const SizedBox(height: 32),
             
             Text(
-              'Acceso rápido',
+              'Top Playlists',
               style: TextStyle(
                 color: context.colors.text,
                 fontSize: 20,
@@ -107,34 +137,63 @@ class _HomeScreenState extends State<HomeScreen> {
             
             const SizedBox(height: 16),
             
-            Row(
-              children: [
-                Expanded(
-                  child: _QuickActionCard(
-                    icon: Icons.favorite,
-                    title: 'Me Gusta',
-                    subtitle: 'Tus canciones favoritas',
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Función en desarrollo')),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _QuickActionCard(
-                    icon: Icons.history,
-                    title: 'Recientes',
-                    subtitle: 'Reproducidas recientemente',
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Función en desarrollo')),
-                      );
-                    },
-                  ),
-                ),
-              ],
+            SizedBox(
+              height: 200,
+              child: _isLoadingPlaylists
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _topPlaylists.length,
+                      itemBuilder: (context, index) {
+                        final playlist = _topPlaylists[index];
+                        return _DiscoverCard(
+                          playlist: playlist,
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Abriendo ${playlist.name}...'),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+            ),
+            
+            const SizedBox(height: 32),
+            
+            Text(
+              'Discover',
+              style: TextStyle(
+                color: context.colors.text,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            SizedBox(
+              height: 200,
+              child: _isLoadingPlaylists
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _topPlaylists.length,
+                      itemBuilder: (context, index) {
+                        final playlist = _topPlaylists[index];
+                        return _DiscoverCard(
+                          playlist: playlist,
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Abriendo ${playlist.name}...'),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
             ),
             
             const SizedBox(height: 32),
@@ -150,42 +209,27 @@ class _HomeScreenState extends State<HomeScreen> {
             
             const SizedBox(height: 16),
             
-            Expanded(
-              child: ListView(
-                children: [
-                  _PlaylistTile(
-                    title: 'Mi Playlist #1',
-                    subtitle: '12 canciones',
-                    icon: Icons.queue_music,
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Abriendo playlist...')),
-                      );
-                    },
-                  ),
-                  _PlaylistTile(
-                    title: 'Favoritos Rock',
-                    subtitle: '8 canciones',
-                    icon: Icons.music_note,
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Abriendo playlist...')),
-                      );
-                    },
-                  ),
-                  _PlaylistTile(
-                    title: 'Crear nueva playlist',
-                    subtitle: 'Toca para crear',
-                    icon: Icons.add,
-                    isCreate: true,
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Función en desarrollo')),
-                      );
-                    },
-                  ),
-                ],
-              ),
+            SizedBox(
+              height: 200,
+              child: _isLoadingPlaylists
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _topPlaylists.length,
+                      itemBuilder: (context, index) {
+                        final playlist = _topPlaylists[index];
+                        return _DiscoverCard(
+                          playlist: playlist,
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Abriendo ${playlist.name}...'),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
             ),
           ],
         ),
@@ -302,16 +346,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _QuickActionCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
+class _DiscoverCard extends StatelessWidget {
+  final Playlist playlist;
   final VoidCallback onTap;
 
-  const _QuickActionCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
+  const _DiscoverCard({
+    required this.playlist,
     required this.onTap,
   });
 
@@ -320,35 +360,46 @@ class _QuickActionCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: context.colors.card1,
-          borderRadius: BorderRadius.circular(12),
-        ),
+        width: 160,
+        margin: const EdgeInsets.only(right: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              icon,
-              color: context.primaryColor,
-              size: 32,
+            Container(
+              width: 160,
+              height: 160,
+              decoration: BoxDecoration(
+                color: context.colors.card1,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: context.colors.lightGray.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  playlist.name,
+                  style: TextStyle(
+                    color: context.colors.text,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text(
-              title,
+              playlist.name,
               style: TextStyle(
                 color: context.colors.text,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: TextStyle(
-                color: context.colors.secondaryText,
                 fontSize: 12,
+                fontWeight: FontWeight.w500,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
