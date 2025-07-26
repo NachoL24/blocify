@@ -4,9 +4,8 @@ import '../services/auth0_service.dart';
 import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  final String username;
   
-  const HomeScreen({super.key, required this.username});
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -77,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Hola, ${widget.username}!',
+              'Hola, ${_auth0Service.currentUser?.givenName}!',
               style: TextStyle(
                 color: context.colors.text,
                 fontSize: 28,
@@ -249,7 +248,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.username,
+                      _auth0Service.currentUsername,
                       style: TextStyle(
                         color: context.colors.text,
                         fontSize: 18,
