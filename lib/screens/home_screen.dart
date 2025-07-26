@@ -4,6 +4,7 @@ import '../services/auth0_service.dart';
 import '../services/playlist_service.dart';
 import '../models/playlist_summary.dart';
 import 'login_screen.dart';
+import 'playlist_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   
@@ -149,9 +150,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         return _DiscoverCard(
                           playlist: playlist,
                           onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Abriendo ${playlist.name}...'),
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PlaylistDetailScreen(
+                                  playlistId: playlist.id,
+                                  playlistName: playlist.name,
+                                ),
                               ),
                             );
                           },
@@ -185,9 +190,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         return _DiscoverCard(
                           playlist: playlist,
                           onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Abriendo ${playlist.name}...'),
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PlaylistDetailScreen(
+                                  playlistId: playlist.id,
+                                  playlistName: playlist.name,
+                                ),
                               ),
                             );
                           },
