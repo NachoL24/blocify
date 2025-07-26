@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../models/playlist.dart';
 import '../models/playlist_summary.dart';
 import '../models/song.dart';
+import '../models/block.dart';
 
 class PlaylistService {
   static final PlaylistService instance = PlaylistService._internal();
@@ -76,6 +77,148 @@ class PlaylistService {
           "duration": 22,
           "id": 4,
           "picture": songPictureBytes.toList()
+        }
+      ],
+      "blocks": [
+        {
+          "id": 1,
+          "name": "melancolia",
+          "songs": [
+            {
+              "name": "La Curiosidad",
+              "itemId": "12345-abc",
+              "artist": "Jay Wheeler",
+              "artistId": "artist-789",
+              "album": "Platónicos",
+              "albumId": "album-456",
+              "duration": 21,
+              "id": 2,
+              "picture": songPictureBytes.toList()
+            },
+            {
+              "name": "Melancolía",
+              "itemId": "melancolia-123",
+              "artist": "Bad Bunny",
+              "artistId": "artist-999",
+              "album": "YHLQMDLG",
+              "albumId": "album-999",
+              "duration": 19,
+              "id": 5,
+              "picture": songPictureBytes.toList()
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "energeticos",
+          "songs": [
+            {
+              "name": "Con Altura",
+              "itemId": "11111-ghi",
+              "artist": "ROSALÍA",
+              "artistId": "artist-456",
+              "album": "Con Altura",
+              "albumId": "album-012",
+              "duration": 22,
+              "id": 4,
+              "picture": songPictureBytes.toList()
+            },
+            {
+              "name": "Safaera",
+              "itemId": "safaera-456",
+              "artist": "Bad Bunny",
+              "artistId": "artist-999",
+              "album": "YHLQMDLG",
+              "albumId": "album-999",
+              "duration": 29,
+              "id": 6,
+              "picture": songPictureBytes.toList()
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "name": "romanticas",
+          "songs": [
+            {
+              "name": "Fiel",
+              "itemId": "67890-def",
+              "artist": "Los Legendarios",
+              "artistId": "artist-123",
+              "album": "La Mafia",
+              "albumId": "album-789",
+              "duration": 18,
+              "id": 3,
+              "picture": songPictureBytes.toList()
+            },
+            {
+              "name": "Dákiti",
+              "itemId": "dakiti-789",
+              "artist": "Bad Bunny ft. Jhay Cortez",
+              "artistId": "artist-999",
+              "album": "El Último Tour Del Mundo",
+              "albumId": "album-888",
+              "duration": 25,
+              "id": 7,
+              "picture": songPictureBytes.toList()
+            }
+          ]
+        },
+          {
+            "id": 4,
+            "name": "fiesta",
+            "songs": [
+              {
+                "name": "Baila Baila Baila",
+                "itemId": "baila-123",
+                "artist": "ROSALÍA",
+                "artistId": "artist-456",
+                "album": "El Mal Querer",
+                "albumId": "album-111",
+                "duration": 20,
+                "id": 8,
+                "picture": songPictureBytes.toList()
+              },
+              {
+                "name": "Tusa",
+                "itemId": "tusa-456",
+                "artist": "Karol G ft. Nicki Minaj",
+                "artistId": "artist-222",
+                "album": "Tusa",
+                "albumId": "album-333",
+                "duration": 23,
+                "id": 9,
+                "picture": songPictureBytes.toList()
+              }
+            ]
+          },
+        {
+          "id": 5,
+          "name": "clasicos",
+          "songs": [
+            {
+              "name": "Livin' la Vida Loca",
+              "itemId": "livin-123",
+              "artist": "Ricky Martin",
+              "artistId": "artist-444",
+              "album": "Ricky Martin",
+              "albumId": "album-555",
+              "duration": 30,
+              "id": 10,
+              "picture": songPictureBytes.toList()
+            },
+            {
+              "name": "Macarena",
+              "itemId": "macarena-456",
+              "artist": "Los Del Rio",
+              "artistId": "artist-666",
+              "album": "A Mover El Esqueleto",
+              "albumId": "album-777",
+              "duration": 28,
+              "id": 11,
+              "picture": songPictureBytes.toList()
+            }
+          ]
         }
       ]
     };

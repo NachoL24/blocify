@@ -1,16 +1,19 @@
 import 'song.dart';
+import 'block.dart';
 
 class Playlist {
   final int id;
   final String name;
   final String description;
   final List<Song> songs;
+  final List<Block> blocks;
 
   Playlist({
     required this.id,
     required this.name,
     required this.description,
     required this.songs,
+    required this.blocks,
   });
 
   factory Playlist.fromJson(Map<String, dynamic> json) {
@@ -21,6 +24,9 @@ class Playlist {
       songs: (json['songs'] as List<dynamic>?)
           ?.map((songJson) => Song.fromJson(songJson))
           .toList() ?? [],
+      blocks: (json['blocks'] as List<dynamic>?)
+          ?.map((blockJson) => Block.fromJson(blockJson))
+          .toList() ?? [],
     );
   }
 
@@ -30,6 +36,7 @@ class Playlist {
       'name': name,
       'description': description,
       'songs': songs.map((song) => song.toJson()).toList(),
+      'blocks': blocks.map((block) => block.toJson()).toList(),
     };
   }
 }
