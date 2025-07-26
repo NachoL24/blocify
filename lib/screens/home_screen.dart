@@ -18,13 +18,19 @@ class _HomeScreenState extends State<HomeScreen> {
   final Auth0Service _auth0Service = Auth0Service.instance;
   final PlaylistService _playlistService = PlaylistService.instance;
   List<PlaylistSummary> _topPlaylists = [];
-  bool _isLoadingPlaylists = true;
+  List<PlaylistSummary> _discoverPlaylists = [];
+  List<PlaylistSummary> _userPlaylists = [];
+  bool _isLoadingTopPlaylists = true;
+  bool _isLoadingDiscoverPlaylists = true;
+  bool _isLoadingUserPlaylists = true;
 
   @override
   void initState() {
     super.initState();
     _auth0Service.addListener(_onAuthStateChanged);
     _loadTopPlaylists();
+    _loadDiscoverPlaylists();
+    _loadUserPlaylists();
   }
 
   @override
@@ -49,13 +55,61 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) {
         setState(() {
           _topPlaylists = playlists;
-          _isLoadingPlaylists = false;
+          _isLoadingTopPlaylists = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _isLoadingPlaylists = false;
+          _isLoadingTopPlaylists = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar playlists: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _loadDiscoverPlaylists() async {
+    try {
+      final playlists = await _playlistService.getDiscoverPlaylists();
+      if (mounted) {
+        setState(() {
+          _discoverPlaylists = playlists;
+          _isLoadingDiscoverPlaylists = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingDiscoverPlaylists = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar playlists: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _loadUserPlaylists() async {
+    try {
+      final playlists = await _playlistService.getUserPlaylists();
+      if (mounted) {
+        setState(() {
+          _userPlaylists = playlists;
+          _isLoadingUserPlaylists = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingUserPlaylists = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -140,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
             
             SizedBox(
               height: 200,
-              child: _isLoadingPlaylists
+              child: _isLoadingTopPlaylists
                   ? const Center(child: CircularProgressIndicator())
                   : ListView.builder(
                       scrollDirection: Axis.horizontal,
@@ -180,13 +234,13 @@ class _HomeScreenState extends State<HomeScreen> {
             
             SizedBox(
               height: 200,
-              child: _isLoadingPlaylists
+              child: _isLoadingDiscoverPlaylists
                   ? const Center(child: CircularProgressIndicator())
                   : ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: _topPlaylists.length,
+                      itemCount: _discoverPlaylists.length,
                       itemBuilder: (context, index) {
-                        final playlist = _topPlaylists[index];
+                        final playlist = _discoverPlaylists[index];
                         return _DiscoverCard(
                           playlist: playlist,
                           onTap: () {
@@ -220,13 +274,13 @@ class _HomeScreenState extends State<HomeScreen> {
             
             SizedBox(
               height: 200,
-              child: _isLoadingPlaylists
+              child: _isLoadingUserPlaylists
                   ? const Center(child: CircularProgressIndicator())
                   : ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: _topPlaylists.length,
+                      itemCount: _userPlaylists.length,
                       itemBuilder: (context, index) {
-                        final playlist = _topPlaylists[index];
+                        final playlist = _userPlaylists[index];
                         return _DiscoverCard(
                           playlist: playlist,
                           onTap: () {

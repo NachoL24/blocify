@@ -31,6 +31,48 @@ class PlaylistService {
     return mockResponse.map((json) => PlaylistSummary.fromJson(json)).toList();
   }
 
+  // Mock de la respuesta del endpoint /api/playlists/discover
+  Future<List<PlaylistSummary>> getDiscoverPlaylists() async {
+    // Simular delay de red
+    await Future.delayed(const Duration(milliseconds: 500));
+    
+    final mockResponse = [
+      {"id": 1, "name": "New Music Friday"},
+      {"id": 2, "name": "Today's Top Hits"},
+      {"id": 3, "name": "RapCaviar"},
+      {"id": 4, "name": "Hot Country"},
+      {"id": 5, "name": "Rock Classics"},
+      {"id": 6, "name": "Chill Hits"},
+      {"id": 7, "name": "Pop Rising"},
+      {"id": 8, "name": "Indie Pop Chillout"},
+      {"id": 9, "name": "Acoustic Covers"},
+      {"id": 10, "name": "Latin Pop Rising"}
+    ];
+
+    return mockResponse.map((json) => PlaylistSummary.fromJson(json)).toList();
+  }
+
+  // Mock de la respuesta del endpoint /api/playlists/user/{userId}
+  Future<List<PlaylistSummary>> getUserPlaylists() async {
+    // Simular delay de red
+    await Future.delayed(const Duration(milliseconds: 500));
+    
+    final mockResponse = [
+      {"id": 1, "name": "My Favorite Songs"},
+      {"id": 2, "name": "Chill Beats"},
+      {"id": 3, "name": "Workout Playlist"},
+      {"id": 4, "name": "Party Hits"},
+      {"id": 5, "name": "Indie Discoveries"},
+      {"id": 6, "name": "Classic Rock Anthems"},
+      {"id": 7, "name": "Pop Perfection"},
+      {"id": 8, "name": "Jazz Essentials"},
+      {"id": 9, "name": "Electronic Vibes"},
+      {"id": 10, "name": "Reggaeton Hits"}
+    ];
+
+    return mockResponse.map((json) => PlaylistSummary.fromJson(json)).toList();
+  }
+
   // Mock de la respuesta del endpoint /api/playlists/{id}
   Future<Playlist> getPlaylistById(int id) async {
     // Simular delay de red
