@@ -3,8 +3,11 @@ import '../theme/app_colors.dart';
 import '../services/auth0_service.dart';
 import '../services/playlist_service.dart';
 import '../models/playlist_summary.dart';
+import '../widgets/custom_app_bar.dart';
+import '../widgets/home_content.dart';
+import '../widgets/library_content.dart';
+import '../widgets/profile_bottom_sheet.dart';
 import 'login_screen.dart';
-import 'playlist_detail_screen.dart';
 import 'search_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -143,215 +146,27 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHomeContent() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Hola, ${_auth0Service.currentUser?.givenName}!',
-            style: TextStyle(
-              color: context.colors.text,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          
-          const SizedBox(height: 8),
-          
-          Text(
-            '¿Qué quieres escuchar hoy?',
-            style: TextStyle(
-              color: context.colors.secondaryText,
-              fontSize: 16,
-            ),
-          ),
-
-          const SizedBox(height: 32),
-          
-          Text(
-            'Top Playlists',
-            style: TextStyle(
-              color: context.colors.text,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          
-          const SizedBox(height: 16),
-          
-          SizedBox(
-            height: 200,
-            child: _isLoadingTopPlaylists
-                ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _topPlaylists.length,
-                    itemBuilder: (context, index) {
-                      final playlist = _topPlaylists[index];
-                      return _DiscoverCard(
-                        playlist: playlist,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PlaylistDetailScreen(
-                                playlistId: playlist.id,
-                                playlistName: playlist.name,
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-          ),
-          
-          const SizedBox(height: 32),
-          
-          Text(
-            'Discover',
-            style: TextStyle(
-              color: context.colors.text,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          
-          const SizedBox(height: 16),
-          
-          SizedBox(
-            height: 200,
-            child: _isLoadingDiscoverPlaylists
-                ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _discoverPlaylists.length,
-                    itemBuilder: (context, index) {
-                      final playlist = _discoverPlaylists[index];
-                      return _DiscoverCard(
-                        playlist: playlist,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PlaylistDetailScreen(
-                                playlistId: playlist.id,
-                                playlistName: playlist.name,
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-          ),
-          
-          const SizedBox(height: 32),
-          
-          const Text(
-            'Tus Playlists',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          
-          const SizedBox(height: 16),
-          
-          SizedBox(
-            height: 200,
-            child: _isLoadingUserPlaylists
-                ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _userPlaylists.length,
-                    itemBuilder: (context, index) {
-                      final playlist = _userPlaylists[index];
-                      return _DiscoverCard(
-                        playlist: playlist,
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Abriendo ${playlist.name}...'),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
+    return HomeContent(
+      auth0Service: _auth0Service,
+      topPlaylists: _topPlaylists,
+      discoverPlaylists: _discoverPlaylists,
+      userPlaylists: _userPlaylists,
+      isLoadingTopPlaylists: _isLoadingTopPlaylists,
+      isLoadingDiscoverPlaylists: _isLoadingDiscoverPlaylists,
+      isLoadingUserPlaylists: _isLoadingUserPlaylists,
     );
   }
 
   Widget _buildLibraryContent() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.library_music,
-            size: 64,
-            color: context.colors.secondaryText.withOpacity(0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Biblioteca',
-            style: TextStyle(
-              color: context.colors.text,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Próximamente...',
-            style: TextStyle(
-              color: context.colors.secondaryText,
-              fontSize: 16,
-            ),
-          ),
-        ],
-      ),
-    );
+    return const LibraryContent();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.colors.background,
-      appBar: _selectedIndex == 1 ? null : AppBar(
-        backgroundColor: context.colors.background,
-        elevation: 0,
-        title: Row(
-          children: [
-            Icon(
-              Icons.music_note_rounded,
-              color: context.primaryColor,
-              size: 28,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Blocify',
-              style: TextStyle(
-                color: context.colors.text,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.person, color: context.colors.text),
-            onPressed: () {
-              _showProfileMenu(context);
-            },
-          ),
-        ],
+      appBar: _selectedIndex == 1 ? null : CustomAppBar(
+        onProfileTap: () => _showProfileMenu(context),
       ),
       body: _buildCurrentScreen(),
       bottomNavigationBar: BottomNavigationBar(
@@ -386,67 +201,9 @@ class _HomeScreenState extends State<HomeScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: context.colors.lightGray,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: context.primaryColor,
-                  child: Icon(
-                    Icons.person,
-                    color: context.permanentWhite,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _auth0Service.currentUsername,
-                      style: TextStyle(
-                        color: context.colors.text,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      'Usuario de Blocify',
-                      style: TextStyle(
-                        color: context.colors.secondaryText,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 30),
-            ListTile(
-              leading: Icon(Icons.logout, color: Colors.red),
-              title: Text(
-                'Cerrar Sesión',
-                style: TextStyle(color: Colors.red),
-              ),
-              onTap: () async {
-                Navigator.pop(context);
-                await _handleLogout(context);
-              },
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
+      builder: (context) => ProfileBottomSheet(
+        auth0Service: _auth0Service,
+        onLogout: () => _handleLogout(context),
       ),
     );
   }
@@ -464,71 +221,5 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
     }
-  }
-}
-
-class _DiscoverCard extends StatelessWidget {
-  final PlaylistSummary playlist;
-  final VoidCallback onTap;
-
-  const _DiscoverCard({
-    required this.playlist,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 160,
-        margin: const EdgeInsets.only(right: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 160,
-              height: 160,
-              decoration: BoxDecoration(
-                color: context.colors.secondaryText,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: context.colors.primary.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  playlist.name,
-                  style: TextStyle(
-                    color: context.colors.text,
-                    fontSize: 28,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text(
-                playlist.name,
-                style: TextStyle(
-                  color: context.colors.text,
-                  fontSize: 12,
-                fontWeight: FontWeight.w500,
-                decoration: TextDecoration.underline,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
