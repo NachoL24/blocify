@@ -13,4 +13,7 @@ class Auth0Config {
 
   // URL para obtener las claves públicas JWT
   static String get jwksUri => '$domain.well-known/jwks.json';
+
+  // Backend Configuration
+  static String get backendBaseUrl => dotenv.env['BASE_BACKEND_URL'] ?? '';
 }

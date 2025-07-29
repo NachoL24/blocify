@@ -47,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final credentials = await _auth0Service.login();
-      
+
       if (credentials != null && mounted) {
       } else if (mounted) {
         _showError('Error al iniciar sesión');
@@ -65,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _navigateToHome() {    
+  void _navigateToHome() {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (context) => const MainScreen(),
@@ -99,10 +99,15 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 Column(
                   children: [
-                    Icon(
-                      Icons.music_note_rounded,
-                      size: 80,
-                      color: context.primaryColor,
+                    Container(
+                      width: 80,
+                      height: 80,
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Text(

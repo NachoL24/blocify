@@ -3,7 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class JellyfinService {
-  static String get baseUrl => dotenv.env['API_URL'] ?? 'http://localhost:8096';
+  static String get baseUrl =>
+      dotenv.env['BASE_JELLYFIN_URL'] ?? 'http://localhost:8096';
   static String get apiKey => dotenv.env['API_KEY'] ?? '';
 
   static Future<List<JellyfinTrack>> getAllTracks() async {
@@ -30,20 +31,8 @@ class JellyfinService {
     return '$baseUrl/Items/$itemId/Download?api_key=$apiKey';
   }
 
-  static String getImageUrl(String itemId, {String imageType = 'Primary'}) {
-    return '$baseUrl/Items/$itemId/Images/$imageType?api_key=$apiKey';
-  }
-
-  static String? getAlbumImageUrl(JellyfinTrack track) {
-    if (track.albumId != null && track.albumPrimaryImageTag != null) {
-      return getImageUrl(track.albumId!);
-    }
-
-    if (track.artistItems.isNotEmpty) {
-      return getImageUrl(track.artistItems.first.id);
-    }
-
-    return getImageUrl(track.id);
+  static String getImageUrl(String itemId) {
+    return '$baseUrl/Items/$itemId/Images/Primary?api_key=$apiKey';
   }
 }
 
@@ -51,23 +40,15 @@ class JellyfinTrack {
   final String id;
   final String name;
   final String? albumId;
-  final String? albumPrimaryImageTag;
-  final String? albumArtist;
   final List<String> artists;
   final List<JellyfinArtist> artistItems;
-  final int? runTimeTicks;
-  final String? container;
 
   JellyfinTrack({
     required this.id,
     required this.name,
     this.albumId,
-    this.albumPrimaryImageTag,
-    this.albumArtist,
     required this.artists,
     required this.artistItems,
-    this.runTimeTicks,
-    this.container,
   });
 
   factory JellyfinTrack.fromJson(Map<String, dynamic> json) {
@@ -75,21 +56,14 @@ class JellyfinTrack {
       id: json['Id'] ?? '',
       name: json['Name'] ?? 'Canción sin título',
       albumId: json['AlbumId'],
-      albumPrimaryImageTag: json['AlbumPrimaryImageTag'],
-      albumArtist: json['AlbumArtist'],
       artists: List<String>.from(json['Artists'] ?? []),
       artistItems: (json['ArtistItems'] as List<dynamic>? ?? [])
           .map((item) => JellyfinArtist.fromJson(item))
           .toList(),
-      runTimeTicks: json['RunTimeTicks'],
-      container: json['Container'],
     );
   }
 
   String get primaryArtist {
-    if (albumArtist != null && albumArtist!.isNotEmpty) {
-      return albumArtist!;
-    }
     if (artists.isNotEmpty) {
       return artists.first;
     }
@@ -99,13 +73,17 @@ class JellyfinTrack {
     return 'Artista desconocido';
   }
 
-  Duration? get duration {
-    if (runTimeTicks == null) return null;
-    return Duration(microseconds: runTimeTicks! ~/ 10);
-  }
-
   String get streamUrl => JellyfinService.getStreamUrl(id);
-  String? get imageUrl => JellyfinService.getAlbumImageUrl(this);
+
+  String? get imageUrl {
+    if (albumId != null) {
+      return JellyfinService.getImageUrl(albumId!);
+    }
+    if (artistItems.isNotEmpty) {
+      return JellyfinService.getImageUrl(artistItems.first.id);
+    }
+    return JellyfinService.getImageUrl(id);
+  }
 }
 
 class JellyfinArtist {

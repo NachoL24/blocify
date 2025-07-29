@@ -1,18 +1,124 @@
 import 'dart:typed_data';
+import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import '../models/playlist.dart';
 import '../models/playlist_summary.dart';
 import '../models/song.dart';
 import '../models/block.dart';
+import '../config/auth0_config.dart';
+import '../services/auth0_service.dart';
 
 class PlaylistService {
   static final PlaylistService instance = PlaylistService._internal();
 
   PlaylistService._internal();
 
-  
+  Future<Map<String, dynamic>?> createPlaylist({
+    required String name,
+    required String description,
+  }) async {
+    try {
+      final auth0Service = Auth0Service.instance;
+
+      if (!auth0Service.isAuthenticated ||
+          auth0Service.currentCredentials == null ||
+          auth0Service.currentUser == null) {
+        throw Exception('Usuario no autenticado');
+      }
+
+      final url = Uri.parse('${Auth0Config.backendBaseUrl}/api/playlists');
+
+      final body = {
+        'name': name,
+        'description': description,
+        'ownerId': auth0Service.currentUser!.id,
+      };
+
+      print('🚀 Creando playlist con datos:');
+      print('   - Name: $name');
+      print('   - Description: $description');
+      print('   - Owner ID: ${auth0Service.currentUser!.id}');
+      print('   - URL: $url');
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(body),
+      );
+
+      print('📱 Respuesta del servidor:');
+      print('   - Status: ${response.statusCode}');
+      print('   - Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Error al crear playlist: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error en createPlaylist: $e');
+      throw Exception('Error al crear playlist: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>?> updatePlaylist({
+    required int playlistId,
+    required String name,
+    required String description,
+  }) async {
+    try {
+      final auth0Service = Auth0Service.instance;
+
+      if (!auth0Service.isAuthenticated ||
+          auth0Service.currentCredentials == null ||
+          auth0Service.currentUser == null) {
+        throw Exception('Usuario no autenticado');
+      }
+
+      final url =
+          Uri.parse('${Auth0Config.backendBaseUrl}/api/playlists/$playlistId');
+
+      final body = {
+        'id': playlistId,
+        'name': name,
+        'description': description,
+        'blocks': [],
+        'songs': [],
+      };
+
+      print('✏️ Actualizando playlist con datos:');
+      print('   - ID: $playlistId');
+      print('   - Name: $name');
+      print('   - Description: $description');
+      print('   - URL: $url');
+
+      final response = await http.patch(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(body),
+      );
+
+      print('📱 Respuesta del servidor:');
+      print('   - Status: ${response.statusCode}');
+      print('   - Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Error al actualizar playlist: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error en updatePlaylist: $e');
+      throw Exception('Error al actualizar playlist: $e');
+    }
+  }
+
   Future<List<PlaylistSummary>> getTopPlaylists() async {
-    
     await Future.delayed(const Duration(milliseconds: 500));
 
     final mockResponse = [
@@ -31,9 +137,7 @@ class PlaylistService {
     return mockResponse.map((json) => PlaylistSummary.fromJson(json)).toList();
   }
 
-  
   Future<List<PlaylistSummary>> getDiscoverPlaylists() async {
-    
     await Future.delayed(const Duration(milliseconds: 500));
 
     final mockResponse = [
@@ -52,30 +156,7 @@ class PlaylistService {
     return mockResponse.map((json) => PlaylistSummary.fromJson(json)).toList();
   }
 
-  
-  Future<List<PlaylistSummary>> getUserPlaylists() async {
-    
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    final mockResponse = [
-      {"id": 1, "name": "My Favorite Songs"},
-      {"id": 2, "name": "Chill Beats"},
-      {"id": 3, "name": "Workout Playlist"},
-      {"id": 4, "name": "Party Hits"},
-      {"id": 5, "name": "Indie Discoveries"},
-      {"id": 6, "name": "Classic Rock Anthems"},
-      {"id": 7, "name": "Pop Perfection"},
-      {"id": 8, "name": "Jazz Essentials"},
-      {"id": 9, "name": "Electronic Vibes"},
-      {"id": 10, "name": "Reggaeton Hits"}
-    ];
-
-    return mockResponse.map((json) => PlaylistSummary.fromJson(json)).toList();
-  }
-
-  
   Future<Playlist> getPlaylistById(int id) async {
-    
     await Future.delayed(const Duration(milliseconds: 300));
 
     final Uint8List songPictureBytes = await _loadMockSongPicture();
@@ -266,14 +347,12 @@ class PlaylistService {
     return Playlist.fromJson(mockPlaylistData);
   }
 
-  
   Future<Uint8List> _loadMockSongPicture() async {
     try {
       final ByteData data =
           await rootBundle.load('lib/services/song-picture.jpeg');
       return data.buffer.asUint8List();
     } catch (e) {
-      
       print('Error loading song picture: $e');
       return Uint8List(0);
     }

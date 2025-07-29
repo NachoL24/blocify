@@ -16,10 +16,15 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       elevation: 0,
       title: Row(
         children: [
-          Icon(
-            Icons.music_note_rounded,
-            color: context.primaryColor,
-            size: 28,
+          Container(
+            width: 28,
+            height: 28,
+            child: Image.asset(
+              'assets/images/logo.png',
+              width: 28,
+              height: 28,
+              fit: BoxFit.contain,
+            ),
           ),
           const SizedBox(width: 8),
           Text(

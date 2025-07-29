@@ -4,6 +4,7 @@ import 'screens/login_screen.dart';
 import 'screens/main_screen.dart';
 import 'screens/player.dart';
 import 'screens/music_library_screen.dart';
+import 'screens/create_playlist_screen.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
@@ -31,6 +32,7 @@ class BlocifyApp extends StatelessWidget {
         '/home': (context) => const MainScreen(),
         '/player': (context) => const PlayerPage(),
         '/library': (context) => const MusicLibraryScreen(),
+        '/create-playlist': (context) => const CreatePlaylistScreen(),
       },
     );
   }

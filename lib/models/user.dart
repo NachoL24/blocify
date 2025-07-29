@@ -22,6 +22,7 @@ class User {
               ?.map((playlist) => PlaylistSummary(
                     id: playlist['id'],
                     name: playlist['name'],
+                    description: playlist['description'],
                   ))
               .toList() ??
           [],
