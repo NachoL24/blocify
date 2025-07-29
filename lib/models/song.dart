@@ -38,10 +38,8 @@ class Song {
       album: json['album'],
       albumId: json['albumId'],
       duration: json['duration'],
-      id: json['id'],
-      picture: json['picture'] != null
-          ? String.fromCharCodes(json['picture'].cast<int>())
-          : null,
+      id: json['id'].toString(),
+      picture: json['picture'],
       albumPrimaryImageTag: json['albumPrimaryImageTag'],
       container: json['container'],
     );

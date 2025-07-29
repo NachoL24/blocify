@@ -30,7 +30,7 @@ class AppTheme {
           fontFamily: 'Roboto',
         ),
       ),
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         color: AppColors.lightCard1,
         elevation: 2,
         shape: RoundedRectangleBorder(
@@ -126,7 +126,7 @@ class AppTheme {
           fontFamily: 'Roboto',
         ),
       ),
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         color: AppColors.darkCard1,
         elevation: 2,
         shape: RoundedRectangleBorder(

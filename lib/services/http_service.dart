@@ -107,9 +107,7 @@ class HttpService {
     if (response.statusCode >= 400) {
       print('Error Response: ${response.body}');
     } else {
-      final body = response.body.length > 200
-          ? '${response.body.substring(0, 200)}...'
-          : response.body;
+      final body = response.body;
       print('Response: $body');
     }
   }
