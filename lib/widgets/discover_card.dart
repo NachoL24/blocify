@@ -37,7 +37,7 @@ class DiscoverCard extends StatelessWidget {
                 child: Text(
                   playlist.name,
                   style: TextStyle(
-                    color: context.colors.text,
+                    color: Colors.white,
                     fontSize: 28,
                     fontWeight: FontWeight.w600,
                   ),
