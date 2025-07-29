@@ -42,6 +42,11 @@ class PlayerService extends ChangeNotifier {
       _isPlayerVisible = true;
 
       if (playlist != null) {
+        print('Playing from provided playlist with track: ${track.name}');
+        print('playlist: ${playlist.map((t) => t.name).join(", ")}');
+        if (track.id == playlist.first.id) {
+          playlist = playlist.sublist(1);
+        }
         _playlist = playlist;
         _currentTrackIndex = index ?? playlist.indexOf(track);
       } else {

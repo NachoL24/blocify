@@ -83,6 +83,32 @@ class HttpService {
     return response;
   }
 
+  /// Realizar una petición PATCH autenticada
+  Future<http.Response> patch(String endpoint,
+      {Map<String, dynamic>? body}) async {
+    final token = await _auth0ServiceInstance.getBackendToken();
+    if (token == null) {
+      throw Exception('No hay token de autenticación disponible');
+    }
+
+    final url = Uri.parse('${BackendConfig.baseUrl}$endpoint');
+
+    print('PATCH Request to: $url');
+    print('Token: ${token}...');
+    if (body != null) {
+      print('Body: ${jsonEncode(body)}');
+    }
+
+    final response = await http.patch(
+      url,
+      headers: BackendConfig.authHeaders(token),
+      body: body != null ? jsonEncode(body) : null,
+    );
+
+    _logResponse('PATCH', endpoint, response);
+    return response;
+  }
+
   /// Realizar una petición DELETE autenticada
   Future<http.Response> delete(String endpoint) async {
     final token = await _auth0ServiceInstance.getBackendToken();
@@ -107,9 +133,7 @@ class HttpService {
     if (response.statusCode >= 400) {
       print('Error Response: ${response.body}');
     } else {
-      final body = response.body.length > 200
-          ? '${response.body.substring(0, 200)}...'
-          : response.body;
+      final body = response.body;
       print('Response: $body');
     }
   }

@@ -10,6 +10,7 @@ import '../widgets/profile_bottom_sheet.dart';
 import '../widgets/main_layout.dart';
 import 'login_screen.dart';
 import 'search_screen.dart';
+import 'playlist_detail_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -28,6 +29,10 @@ class _MainScreenState extends State<MainScreen> {
   bool _isLoadingDiscoverPlaylists = true;
   bool _isLoadingUserPlaylists = true;
   int _selectedIndex = 0;
+
+  // Para la navegación a playlist
+  int? _selectedPlaylistId;
+  String? _selectedPlaylistName;
 
   @override
   void initState() {
@@ -103,12 +108,22 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _loadUserPlaylists() async {
     try {
-      final playlists = _auth0Service.currentUser!.playlists;
-      if (mounted) {
-        setState(() {
-          _userPlaylists = playlists;
-          _isLoadingUserPlaylists = false;
-        });
+      if (_auth0Service.currentUser?.id != null) {
+        final playlists = await _playlistService
+            .getUserPlaylists(_auth0Service.currentUser!.id.toString());
+        if (mounted) {
+          setState(() {
+            _userPlaylists = playlists;
+            _isLoadingUserPlaylists = false;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _userPlaylists = [];
+            _isLoadingUserPlaylists = false;
+          });
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -127,11 +142,75 @@ class _MainScreenState extends State<MainScreen> {
 
   void _onItemTapped(int index) {
     setState(() {
+      // Si se toca el mismo tab que ya está activo, recargar contenido
+      if (_selectedIndex == index) {
+        _reloadCurrentContent();
+      }
       _selectedIndex = index;
+      // Limpiar la selección de playlist al cambiar de tab
+      _selectedPlaylistId = null;
+      _selectedPlaylistName = null;
     });
   }
 
+  void _navigateToPlaylist(int playlistId, String playlistName) {
+    setState(() {
+      _selectedPlaylistId = playlistId;
+      _selectedPlaylistName = playlistName;
+    });
+  }
+
+  void _navigateBackFromPlaylist() {
+    setState(() {
+      _selectedPlaylistId = null;
+      _selectedPlaylistName = null;
+    });
+  }
+
+  /// Recargar el contenido de la pantalla actual
+  void _reloadCurrentContent() {
+    switch (_selectedIndex) {
+      case 0: // Home
+        _reloadHomeContent();
+        break;
+      case 1: // Search
+        // La búsqueda normalmente no necesita recarga automática
+        break;
+      case 2: // Library
+        _reloadUserPlaylistsEverywhere();
+        break;
+    }
+  }
+
+  /// Recargar contenido del Home
+  void _reloadHomeContent() {
+    setState(() {
+      _isLoadingTopPlaylists = true;
+      _isLoadingDiscoverPlaylists = true;
+      _isLoadingUserPlaylists = true;
+    });
+
+    _loadTopPlaylists();
+    _loadDiscoverPlaylists();
+    _loadUserPlaylists();
+  }
+
+  /// Recargar contenido de la Library y Home (para mantener sincronizadas las playlists)
+  void _reloadUserPlaylistsEverywhere() {
+    print('🔄 Recargando playlists del usuario en toda la app...');
+    setState(() {
+      _isLoadingUserPlaylists = true;
+    });
+
+    _loadUserPlaylists();
+  }
+
   Widget _buildCurrentScreen() {
+    // Si hay una playlist seleccionada, mostrar su detalle
+    if (_selectedPlaylistId != null && _selectedPlaylistName != null) {
+      return _buildPlaylistDetailContent();
+    }
+
     switch (_selectedIndex) {
       case 0:
         return _buildHomeContent();
@@ -153,11 +232,25 @@ class _MainScreenState extends State<MainScreen> {
       isLoadingTopPlaylists: _isLoadingTopPlaylists,
       isLoadingDiscoverPlaylists: _isLoadingDiscoverPlaylists,
       isLoadingUserPlaylists: _isLoadingUserPlaylists,
+      onPlaylistTap: _navigateToPlaylist,
     );
   }
 
   Widget _buildLibraryContent() {
-    return const LibraryContent();
+    return LibraryContent(
+      userPlaylists: _userPlaylists,
+      isLoadingUserPlaylists: _isLoadingUserPlaylists,
+      onPlaylistTap: _navigateToPlaylist,
+      onPlaylistsUpdated: _reloadUserPlaylistsEverywhere,
+    );
+  }
+
+  Widget _buildPlaylistDetailContent() {
+    return PlaylistDetailScreen(
+      playlistId: _selectedPlaylistId!,
+      playlistName: _selectedPlaylistName!,
+      showBackButton: false,
+    );
   }
 
   @override
@@ -167,9 +260,26 @@ class _MainScreenState extends State<MainScreen> {
         backgroundColor: context.colors.background,
         appBar: _selectedIndex == 1
             ? null
-            : CustomAppBar(
-                onProfileTap: () => _showProfileMenu(context),
-              ),
+            : _selectedPlaylistId != null
+                ? AppBar(
+                    backgroundColor: context.colors.background,
+                    elevation: 0,
+                    leading: IconButton(
+                      icon: Icon(Icons.arrow_back, color: context.colors.text),
+                      onPressed: _navigateBackFromPlaylist,
+                    ),
+                    title: Text(
+                      'Playlist',
+                      style: TextStyle(
+                        color: context.colors.text,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    centerTitle: true,
+                  )
+                : CustomAppBar(
+                    onProfileTap: () => _showProfileMenu(context),
+                  ),
         body: _buildCurrentScreen(),
         bottomNavigationBar: BottomNavigationBar(
           backgroundColor: context.colors.drawer,

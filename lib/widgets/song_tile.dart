@@ -25,7 +25,7 @@ class SongTile extends StatelessWidget {
       const Color(0xFFAB47BC),
       const Color(0xFF26A69A),
     ];
-    return colors[song.id % colors.length];
+    return colors[song.itemId.hashCode % colors.length];
   }
 
   @override
@@ -40,10 +40,10 @@ class SongTile extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: song.picture != null && song.picture!.isNotEmpty
-              ? Image.memory(
+              ? Image.network(
                   song.picture!,
-                  width: 48,
-                  height: 48,
+                  width: 56,
+                  height: 56,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
@@ -100,7 +100,7 @@ class SongTile extends StatelessWidget {
                 fontSize: 14,
               ),
             ),
-      trailing: trailing ?? 
+      trailing: trailing ??
           Icon(
             Icons.more_horiz,
             color: context.colors.secondaryText,

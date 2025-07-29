@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+import 'package:blocify/services/jellyfin_service.dart';
 
 class Song {
   final String name;
@@ -8,8 +8,10 @@ class Song {
   final String album;
   final String albumId;
   final int duration;
-  final int id;
-  final Uint8List? picture;
+  final String id;
+  final String? picture;
+  final String? albumPrimaryImageTag;
+  final String? container;
 
   Song({
     required this.name,
@@ -21,6 +23,8 @@ class Song {
     required this.duration,
     required this.id,
     this.picture,
+    this.albumPrimaryImageTag,
+    this.container,
   });
 
   factory Song.fromJson(Map<String, dynamic> json) {
@@ -32,8 +36,25 @@ class Song {
       album: json['album'],
       albumId: json['albumId'],
       duration: json['duration'],
-      id: json['id'],
-      picture: json['picture'] != null ? Uint8List.fromList(List<int>.from(json['picture'])) : null,
+      id: json['id'].toString(),
+      picture: json['picture'],
+      albumPrimaryImageTag: json['albumPrimaryImageTag'],
+      container: json['container'],
+    );
+  }
+  factory Song.fromJellyfinTrack(JellyfinTrack track, String? pictureUrl) {
+    return Song(
+      name: track.name,
+      itemId: track.id,
+      artist: track.primaryArtist,
+      artistId: track.artistItems.isNotEmpty ? track.artistItems.first.id : '',
+      album: track.albumId != null ? track.albumId! : 'Álbum desconocido',
+      albumId: track.albumId ?? '',
+      duration: 0, // Duración no disponible en JellyfinTrack actual
+      id: track.id,
+      picture: pictureUrl,
+      albumPrimaryImageTag: '', // No disponible en JellyfinTrack actual
+      container: '', // No disponible en JellyfinTrack actual
     );
   }
 
@@ -47,7 +68,25 @@ class Song {
       'albumId': albumId,
       'duration': duration,
       'id': id,
-      'picture': picture?.toList(),
+      'picture': picture,
+      'albumPrimaryImageTag': albumPrimaryImageTag,
+      'container': container,
     };
+  }
+
+  /// Convertir Song a JellyfinTrack
+  JellyfinTrack toJellyfinTrack() {
+    return JellyfinTrack(
+      id: itemId,
+      name: name,
+      albumId: albumId.isNotEmpty ? albumId : null,
+      artists: [artist],
+      artistItems: [
+        JellyfinArtist(
+          id: artistId,
+          name: artist,
+        )
+      ],
+    );
   }
 }

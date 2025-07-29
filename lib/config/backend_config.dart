@@ -9,11 +9,11 @@ class BackendConfig {
 
   // Scopes necesarios para tu API
   static List<String> get scopes => [
-    'read:playlists',
-    'write:playlists',
-    'read:songs',
-    'write:songs',
-  ];
+        'read:playlists',
+        'write:playlists',
+        'read:songs',
+        'write:songs',
+      ];
 
   // Headers por defecto
   static Map<String, String> get defaultHeaders => {
@@ -24,9 +24,10 @@ class BackendConfig {
   // Headers con autenticación
   static Map<String, String> authHeaders(String token) => {
         'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
       };
 
   // URL base para Jellyfin
   static String get jellyfinBaseUrl => dotenv.env['BASE_JELLYFIN_URL'] ?? '';
-
 }

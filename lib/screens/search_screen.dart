@@ -1,3 +1,4 @@
+import 'package:blocify/services/jellyfin_service.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../services/search_service.dart';
@@ -17,10 +18,44 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final SearchService _searchService = SearchService.instance;
+  final JellyfinService _jellyfinService = JellyfinService.instance;
   final TextEditingController _searchController = TextEditingController();
   List<Song> _searchResults = [];
   bool _isLoading = false;
-  bool _hasSearched = false;
+  bool _hasSearched = true;
+
+  @override
+  void initState() {
+    super.initState();
+    initSearch();
+  }
+
+  Future<void> initSearch() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      _searchResults = await _searchService.searchSongs("");
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar contenido inicial: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -29,14 +64,6 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Future<void> _performSearch(String query) async {
-    if (query.trim().isEmpty) {
-      setState(() {
-        _searchResults = [];
-        _hasSearched = false;
-      });
-      return;
-    }
-
     setState(() {
       _isLoading = true;
       _hasSearched = true;
@@ -113,31 +140,26 @@ class _SearchScreenState extends State<SearchScreen> {
                               onSongTap: (song) async {
                                 try {
                                   final playerService = PlayerService.instance;
-                                  final tracks =
-                                      await playerService.loadJellyfinTracks();
 
-                                  final badBunnyTrack = tracks.firstWhere(
-                                    (track) =>
-                                        track.id ==
-                                        '5e8be675d5e30a4c8eb05bc4f43abafe',
-                                    orElse: () => tracks.isNotEmpty
-                                        ? tracks.first
-                                        : throw Exception(
-                                            'No tracks available'),
-                                  );
+                                  // Convertir Song a JellyfinTrack
+                                  final jellyfinTrack = song.toJellyfinTrack();
+
+                                  // Convertir toda la lista de resultados a JellyfinTracks
+                                  final jellyfinPlaylist = _searchResults
+                                      .map((s) => s.toJellyfinTrack())
+                                      .toList();
 
                                   await playerService.playJellyfinTrack(
-                                      badBunnyTrack,
-                                      playlist: tracks);
+                                      jellyfinTrack,
+                                      playlist: jellyfinPlaylist);
 
-                                  // Mostrar mini player y NO navegar automáticamente
-                                  playerService.showMiniPlayer();
+                                  // El mini player se mostrará automáticamente
 
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
-                                            'Reproduciendo ${badBunnyTrack.name}'),
+                                            'Reproduciendo ${jellyfinTrack.name}'),
                                         duration: const Duration(seconds: 2),
                                       ),
                                     );

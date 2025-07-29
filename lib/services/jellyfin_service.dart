@@ -7,6 +7,10 @@ class JellyfinService {
       dotenv.env['BASE_JELLYFIN_URL'] ?? 'http://localhost:8096';
   static String get apiKey => dotenv.env['API_KEY'] ?? '';
 
+  JellyfinService._internal();
+  static final JellyfinService instance = JellyfinService._internal();
+  factory JellyfinService() => instance;
+
   static Future<List<JellyfinTrack>> getAllTracks() async {
     try {
       final response = await http.get(
@@ -27,12 +31,65 @@ class JellyfinService {
     }
   }
 
+  Future<List<JellyfinTrack>> get10Tracks() async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+            '$baseUrl/Items?IncludeItemTypes=Audio&Recursive=true&Limit=10&api_key=$apiKey'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<dynamic> items = data['Items'] ?? [];
+
+        return items.map((item) => JellyfinTrack.fromJson(item)).toList();
+      } else {
+        throw Exception('Failed to load tracks: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching tracks: $e');
+    }
+  }
+
+  Future<List<JellyfinTrack>> searchTracks(String query) async {
+    try {
+      final queryParam = query.split(' ').join('+');
+      final response = await http.get(
+        Uri.parse(
+            '$baseUrl/Items?IncludeItemTypes=Audio&Recursive=true&Limit=10&SearchTerm=$queryParam&api_key=$apiKey'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<dynamic> items = data['Items'] ?? [];
+
+        return items.map((item) => JellyfinTrack.fromJson(item)).toList();
+      } else {
+        throw Exception('Failed to load tracks: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching tracks: $e');
+    }
+  }
+
   static String getStreamUrl(String itemId) {
     return '$baseUrl/Items/$itemId/Download?api_key=$apiKey';
   }
 
-  static String getImageUrl(String itemId) {
-    return '$baseUrl/Items/$itemId/Images/Primary?api_key=$apiKey';
+  static String getImageUrl(String itemId, {String imageType = 'Primary'}) {
+    return '$baseUrl/Items/$itemId/Images/$imageType?api_key=$apiKey';
+  }
+
+  static String? getAlbumImageUrl(JellyfinTrack track) {
+    if (track.albumId != null) {
+      return getImageUrl(track.albumId!);
+    }
+
+    if (track.artistItems.isNotEmpty) {
+      return getImageUrl(track.artistItems.first.id);
+    }
+
+    return getImageUrl(track.id);
   }
 }
 
