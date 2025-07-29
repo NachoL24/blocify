@@ -81,13 +81,16 @@ class JellyfinService {
 
   static String? getAlbumImageUrl(JellyfinTrack track) {
     if (track.albumId != null && track.albumPrimaryImageTag != null) {
+      print("Getting album image for: ${track.albumId}");
       return getImageUrl(track.albumId!);
     }
 
     if (track.artistItems.isNotEmpty) {
+      print("Getting artist image for: ${track.artistItems.first.id}");
       return getImageUrl(track.artistItems.first.id);
     }
 
+    print("Getting track image for: ${track.id}");
     return getImageUrl(track.id);
   }
 }

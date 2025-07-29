@@ -40,10 +40,10 @@ class SongTile extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: song.picture != null && song.picture!.isNotEmpty
-              ? Image.memory(
+              ? Image.network(
                   song.picture!,
-                  width: 48,
-                  height: 48,
+                  width: 56,
+                  height: 56,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
                     return Container(

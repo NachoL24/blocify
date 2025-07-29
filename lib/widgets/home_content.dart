@@ -35,7 +35,6 @@ class HomeContent extends StatelessWidget {
         children: [
           WelcomeHeader(auth0Service: auth0Service),
           const SizedBox(height: 32),
-          
           PlaylistSection(
             title: 'Top Playlists',
             playlists: topPlaylists,
@@ -52,9 +51,7 @@ class HomeContent extends StatelessWidget {
               );
             },
           ),
-          
           const SizedBox(height: 32),
-          
           PlaylistSection(
             title: 'Discover',
             playlists: discoverPlaylists,
@@ -71,21 +68,21 @@ class HomeContent extends StatelessWidget {
               );
             },
           ),
-          
-          const SizedBox(height: 32),
-          
-          PlaylistSection(
-            title: 'Tus Playlists',
-            playlists: userPlaylists,
-            isLoading: isLoadingUserPlaylists,
-            onPlaylistTap: (playlist) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Abriendo ${playlist.name}...'),
-                ),
-              );
-            },
-          ),
+          if (userPlaylists.isNotEmpty) ...[
+            const SizedBox(height: 32),
+            PlaylistSection(
+              title: 'Tus Playlists',
+              playlists: userPlaylists,
+              isLoading: isLoadingUserPlaylists,
+              onPlaylistTap: (playlist) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Abriendo ${playlist.name}...'),
+                  ),
+                );
+              },
+            ),
+          ],
         ],
       ),
     );

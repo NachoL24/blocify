@@ -11,7 +11,9 @@ class Song {
   final String albumId;
   final int duration;
   final String id;
-  final Uint8List? picture;
+  final String? picture;
+  final String? albumPrimaryImageTag;
+  final String? container;
 
   Song({
     required this.name,
@@ -23,6 +25,8 @@ class Song {
     required this.duration,
     required this.id,
     this.picture,
+    this.albumPrimaryImageTag,
+    this.container,
   });
 
   factory Song.fromJson(Map<String, dynamic> json) {
@@ -36,8 +40,10 @@ class Song {
       duration: json['duration'],
       id: json['id'],
       picture: json['picture'] != null
-          ? Uint8List.fromList(List<int>.from(json['picture']))
+          ? String.fromCharCodes(json['picture'].cast<int>())
           : null,
+      albumPrimaryImageTag: json['albumPrimaryImageTag'],
+      container: json['container'],
     );
   }
   factory Song.fromJellyfinTrack(JellyfinTrack track, String? pictureUrl) {
@@ -50,8 +56,9 @@ class Song {
       albumId: track.albumId ?? '',
       duration: track.duration?.inMilliseconds ?? 0,
       id: track.id,
-      picture:
-          pictureUrl != null ? Uint8List.fromList(pictureUrl.codeUnits) : null,
+      picture: pictureUrl,
+      albumPrimaryImageTag: track.albumPrimaryImageTag,
+      container: track.container,
     );
   }
 
@@ -65,7 +72,9 @@ class Song {
       'albumId': albumId,
       'duration': duration,
       'id': id,
-      'picture': picture?.toList(),
+      'picture': picture,
+      'albumPrimaryImageTag': albumPrimaryImageTag,
+      'container': container,
     };
   }
 
@@ -75,7 +84,7 @@ class Song {
       id: itemId,
       name: name,
       albumId: albumId.isNotEmpty ? albumId : null,
-      albumPrimaryImageTag: null, // No tenemos esta info en Song
+      albumPrimaryImageTag: albumPrimaryImageTag,
       albumArtist: artist,
       artists: [artist],
       artistItems: [
@@ -85,7 +94,7 @@ class Song {
         )
       ],
       runTimeTicks: duration * 10000, // Convertir de milliseconds a ticks
-      container: null, // No tenemos esta info en Song
+      container: container,
     );
   }
 }

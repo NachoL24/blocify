@@ -17,16 +17,15 @@ class SearchService {
       if (query.trim().isEmpty) {
         final tracks = await _jellyfinService.get10Tracks();
         for (final track in tracks) {
-          var song = Song.fromJellyfinTrack(
-              track, JellyfinService.getAlbumImageUrl(track));
+          print("track: ${track.name}, track.imageUrl: ${track.imageUrl}");
+          var song = Song.fromJellyfinTrack(track, track.imageUrl);
           results.add(song);
         }
         return results;
       } else {
         final tracks = await _jellyfinService.searchTracks(query);
         for (final track in tracks) {
-          var song = Song.fromJellyfinTrack(
-              track, JellyfinService.getAlbumImageUrl(track));
+          var song = Song.fromJellyfinTrack(track, track.imageUrl);
           results.add(song);
         }
         return results;
