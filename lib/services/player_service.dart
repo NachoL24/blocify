@@ -6,7 +6,15 @@ class PlayerService extends ChangeNotifier {
   static final PlayerService _instance = PlayerService._internal();
   static PlayerService get instance => _instance;
 
-  PlayerService._internal();
+  PlayerService._internal() {
+    // Listen to the audio player's playing state to keep our state in sync
+    _player.playingStream.listen((playing) {
+      if (_isPlaying != playing) {
+        _isPlaying = playing;
+        notifyListeners();
+      }
+    });
+  }
 
   final AudioPlayer _player = AudioPlayer();
 
@@ -60,7 +68,7 @@ class PlayerService extends ChangeNotifier {
       await _player.setUrl(track.streamUrl);
       await _player.play();
 
-      _isPlaying = true;
+      // _isPlaying state will be updated automatically by the stream listener
       notifyListeners();
     } catch (e) {
       debugPrint('Error playing track: $e');
@@ -101,14 +109,12 @@ class PlayerService extends ChangeNotifier {
 
   Future<void> pause() async {
     await _player.pause();
-    _isPlaying = false;
-    notifyListeners();
+    // _isPlaying state will be updated automatically by the stream listener
   }
 
   Future<void> play() async {
     await _player.play();
-    _isPlaying = true;
-    notifyListeners();
+    // _isPlaying state will be updated automatically by the stream listener
   }
 
   Future<void> togglePlayPause() async {
@@ -128,7 +134,7 @@ class PlayerService extends ChangeNotifier {
     _currentTrack = null;
     _playlist.clear();
     _currentTrackIndex = -1;
-    _isPlaying = false;
+    // _isPlaying will be updated automatically by the stream listener
     _isPlayerVisible = false;
     notifyListeners();
   }
