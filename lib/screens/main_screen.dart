@@ -103,7 +103,7 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _loadUserPlaylists() async {
     try {
-      final playlists = await _playlistService.getUserPlaylists();
+      final playlists = _auth0Service.currentUser!.playlists;
       if (mounted) {
         setState(() {
           _userPlaylists = playlists;

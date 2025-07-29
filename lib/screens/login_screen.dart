@@ -65,9 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _navigateToHome() {
-    final username = _auth0Service.currentUsername;
-    
+  void _navigateToHome() {    
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (context) => const MainScreen(),

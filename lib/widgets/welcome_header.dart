@@ -16,7 +16,7 @@ class WelcomeHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Hola, ${auth0Service.currentUser?.givenName}!',
+          'Hola, ${auth0Service.currentUser?.name}!',
           style: TextStyle(
             color: context.colors.text,
             fontSize: 28,
