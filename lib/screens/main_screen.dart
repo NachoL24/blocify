@@ -6,7 +6,6 @@ import '../models/playlist_summary.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/home_content.dart';
 import '../widgets/library_content.dart';
-import '../widgets/profile_bottom_sheet.dart';
 import '../widgets/main_layout.dart';
 import 'login_screen.dart';
 import 'search_screen.dart';
@@ -410,7 +409,8 @@ class _MainScreenState extends State<MainScreen> {
                     ],
                   )
                 : CustomAppBar(
-                    onProfileTap: () => _showProfileMenu(context),
+                    onSettingsTap: () =>
+                        Navigator.pushNamed(context, '/settings'),
                   ),
         body: _buildCurrentScreen(),
         bottomNavigationBar: BottomNavigationBar(
@@ -437,34 +437,5 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
     );
-  }
-
-  void _showProfileMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: context.colors.background,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => ProfileBottomSheet(
-        auth0Service: _auth0Service,
-        onLogout: () => _handleLogout(context),
-      ),
-    );
-  }
-
-  Future<void> _handleLogout(BuildContext context) async {
-    try {
-      await _auth0Service.logout();
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al cerrar sesión: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
   }
 }

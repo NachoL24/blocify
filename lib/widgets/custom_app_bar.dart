@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final VoidCallback onProfileTap;
+  final VoidCallback onSettingsTap;
 
   const CustomAppBar({
     super.key,
-    required this.onProfileTap,
+    required this.onSettingsTap,
   });
 
   @override
@@ -39,8 +39,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         IconButton(
-          icon: Icon(Icons.person, color: context.colors.text),
-          onPressed: onProfileTap,
+          icon: Icon(Icons.settings, color: context.colors.text),
+          onPressed: onSettingsTap,
         ),
       ],
     );
