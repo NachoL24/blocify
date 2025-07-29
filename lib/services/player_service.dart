@@ -38,6 +38,18 @@ class PlayerService extends ChangeNotifier {
   bool get hasNext => _currentTrackIndex < _playlist.length - 1;
   bool get hasPrevious => _currentTrackIndex > 0;
 
+  // Debug methods to track playlist state
+  void logPlaylistState() {
+    debugPrint('=== Playlist State ===');
+    debugPrint('Current track: ${_currentTrack?.name}');
+    debugPrint('Current index: $_currentTrackIndex');
+    debugPrint('Playlist length: ${_playlist.length}');
+    debugPrint('Has next: $hasNext');
+    debugPrint('Has previous: $hasPrevious');
+    debugPrint('Playlist tracks: ${_playlist.map((t) => t.name).join(", ")}');
+    debugPrint('=====================');
+  }
+
   Stream<bool> get playingStream => _player.playingStream;
   Stream<Duration> get positionStream => _player.positionStream;
   Stream<Duration?> get durationStream => _player.durationStream;
@@ -52,9 +64,6 @@ class PlayerService extends ChangeNotifier {
       if (playlist != null) {
         print('Playing from provided playlist with track: ${track.name}');
         print('playlist: ${playlist.map((t) => t.name).join(", ")}');
-        if (track.id == playlist.first.id) {
-          playlist = playlist.sublist(1);
-        }
         _playlist = playlist;
         _currentTrackIndex = index ?? playlist.indexOf(track);
       } else {
@@ -64,6 +73,9 @@ class PlayerService extends ChangeNotifier {
 
       // Notificar inmediatamente que tenemos una canción cargada
       notifyListeners();
+
+      debugPrint('🎵 About to play track: ${track.name}');
+      logPlaylistState();
 
       await _player.setUrl(track.streamUrl);
       await _player.play();
@@ -92,18 +104,54 @@ class PlayerService extends ChangeNotifier {
   }
 
   Future<void> playNext() async {
+    debugPrint('🎵 playNext() called');
+    logPlaylistState();
+    
     if (hasNext) {
       _currentTrackIndex++;
-      await playJellyfinTrack(_playlist[_currentTrackIndex],
-          playlist: _playlist, index: _currentTrackIndex);
+      final nextTrack = _playlist[_currentTrackIndex];
+      _currentTrack = nextTrack;
+      _isPlayerVisible = true;
+      
+      debugPrint('🎵 Moving to next track: ${nextTrack.name}');
+      notifyListeners(); // Notificar antes de la operación asíncrona
+      
+      try {
+        await _player.setUrl(nextTrack.streamUrl);
+        await _player.play();
+        notifyListeners(); // Notificar después también
+        logPlaylistState();
+      } catch (e) {
+        debugPrint('Error playing next track: $e');
+      }
+    } else {
+      debugPrint('🎵 No next track available');
     }
   }
 
   Future<void> playPrevious() async {
+    debugPrint('🎵 playPrevious() called');
+    logPlaylistState();
+    
     if (hasPrevious) {
       _currentTrackIndex--;
-      await playJellyfinTrack(_playlist[_currentTrackIndex],
-          playlist: _playlist, index: _currentTrackIndex);
+      final previousTrack = _playlist[_currentTrackIndex];
+      _currentTrack = previousTrack;
+      _isPlayerVisible = true;
+      
+      debugPrint('🎵 Moving to previous track: ${previousTrack.name}');
+      notifyListeners(); // Notificar antes de la operación asíncrona
+      
+      try {
+        await _player.setUrl(previousTrack.streamUrl);
+        await _player.play();
+        notifyListeners(); // Notificar después también
+        logPlaylistState();
+      } catch (e) {
+        debugPrint('Error playing previous track: $e');
+      }
+    } else {
+      debugPrint('🎵 No previous track available');
     }
   }
 
