@@ -23,13 +23,9 @@ class PlaylistContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           PlaylistHeader(playlist: playlist),
-          
           const SizedBox(height: 32),
-          
           BlocksSection(blocks: playlist.blocks),
-          
           const SizedBox(height: 24),
-          
           SongsSection(
             songs: playlist.songs,
             onSongTap: onSongTap,

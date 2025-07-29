@@ -205,6 +205,131 @@ class _MainScreenState extends State<MainScreen> {
     _loadUserPlaylists();
   }
 
+  void _showEditPlaylistDialog(int playlistId) async {
+    // Encontrar la playlist actual
+    final currentPlaylist = _userPlaylists.firstWhere(
+      (playlist) => playlist.id == playlistId,
+      orElse: () => throw Exception('Playlist no encontrada'),
+    );
+
+    final nameController = TextEditingController(text: currentPlaylist.name);
+    final descriptionController =
+        TextEditingController(text: currentPlaylist.description);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context2) {
+        return Dialog(
+          backgroundColor: context.colors.background,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Editar Playlist',
+                  style: TextStyle(
+                    color: context.colors.text,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: nameController,
+                  style: TextStyle(color: context.colors.text),
+                  decoration: InputDecoration(
+                    labelText: 'Nombre de la playlist',
+                    labelStyle: TextStyle(color: context.colors.secondaryText),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.colors.lightGray),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.primaryColor),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: descriptionController,
+                  style: TextStyle(color: context.colors.text),
+                  decoration: InputDecoration(
+                    hintText: 'Descripción (opcional)',
+                    hintStyle: TextStyle(color: context.colors.secondaryText),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.colors.lightGray),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.primaryColor),
+                    ),
+                  ),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context2).pop(),
+                      child: Text(
+                        'Cancelar',
+                        style: TextStyle(color: context.colors.secondaryText),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (nameController.text.trim().isNotEmpty) {
+                          try {
+                            await _playlistService.updatePlaylist(
+                              playlistId: playlistId,
+                              name: nameController.text.trim(),
+                              description:
+                                  descriptionController.text.trim().isEmpty
+                                      ? 'Mi playlist actualizada'
+                                      : descriptionController.text.trim(),
+                            );
+
+                            if (mounted) {
+                              Navigator.of(context2).pop();
+                              print(
+                                  '🔄 Playlist actualizada, recargando playlists...');
+                              // Actualizar el nombre en la variable local
+                              _selectedPlaylistName =
+                                  nameController.text.trim();
+                              // Recargar las playlists para reflejar los cambios
+                              _reloadUserPlaylistsEverywhere();
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              print('❌ Error al actualizar playlist: $e');
+                            }
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: context.primaryColor,
+                      ),
+                      child: Text(
+                        'Guardar',
+                        style: TextStyle(color: context.colors.permanentWhite),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildCurrentScreen() {
     // Si hay una playlist seleccionada, mostrar su detalle
     if (_selectedPlaylistId != null && _selectedPlaylistName != null) {
@@ -269,13 +394,20 @@ class _MainScreenState extends State<MainScreen> {
                       onPressed: _navigateBackFromPlaylist,
                     ),
                     title: Text(
-                      'Playlist',
+                      _selectedPlaylistName!,
                       style: TextStyle(
                         color: context.colors.text,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     centerTitle: true,
+                    actions: [
+                      IconButton(
+                        icon: Icon(Icons.edit, color: context.colors.text),
+                        onPressed: () =>
+                            _showEditPlaylistDialog(_selectedPlaylistId!),
+                      ),
+                    ],
                   )
                 : CustomAppBar(
                     onProfileTap: () => _showProfileMenu(context),

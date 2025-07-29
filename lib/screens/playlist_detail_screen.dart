@@ -51,7 +51,6 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
           _isLoading = false;
         });
 
-        // Mostrar el error
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al cargar playlist: ${e.toString()}'),
@@ -60,7 +59,6 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
           ),
         );
 
-        // Navegar hacia atrás después de mostrar el error
         Future.delayed(const Duration(seconds: 1), () {
           if (mounted && Navigator.canPop(context)) {
             Navigator.pop(context);
@@ -68,6 +66,123 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
         });
       }
     }
+  }
+
+  void _showEditPlaylistDialog() {
+    if (_playlist == null) return;
+
+    final nameController = TextEditingController(text: _playlist!.name);
+    final descriptionController =
+        TextEditingController(text: _playlist!.description);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: context.colors.background,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Editar Playlist',
+                  style: TextStyle(
+                    color: context.colors.text,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: nameController,
+                  style: TextStyle(color: context.colors.text),
+                  decoration: InputDecoration(
+                    labelText: 'Nombre de la playlist',
+                    labelStyle: TextStyle(color: context.colors.secondaryText),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.colors.lightGray),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.primaryColor),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: descriptionController,
+                  style: TextStyle(color: context.colors.text),
+                  decoration: InputDecoration(
+                    hintText: 'Descripción (opcional)',
+                    hintStyle: TextStyle(color: context.colors.secondaryText),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.colors.lightGray),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.primaryColor),
+                    ),
+                  ),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(
+                        'Cancelar',
+                        style: TextStyle(color: context.colors.secondaryText),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (nameController.text.trim().isNotEmpty) {
+                          try {
+                            await _playlistService.updatePlaylist(
+                              playlistId: widget.playlistId,
+                              name: nameController.text.trim(),
+                              description:
+                                  descriptionController.text.trim().isEmpty
+                                      ? 'Mi playlist actualizada'
+                                      : descriptionController.text.trim(),
+                            );
+
+                            if (mounted) {
+                              Navigator.of(context).pop();
+                              print(
+                                  '🔄 Playlist actualizada, recargando detalles...');
+                              _loadPlaylistDetails(); // Recargar los detalles de la playlist
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              print('❌ Error al actualizar playlist: $e');
+                            }
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: context.primaryColor,
+                      ),
+                      child: Text(
+                        'Guardar',
+                        style: TextStyle(color: context.colors.permanentWhite),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -90,6 +205,12 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                 ),
               ),
               centerTitle: true,
+              actions: [
+                IconButton(
+                  icon: Icon(Icons.edit, color: context.colors.text),
+                  onPressed: _showEditPlaylistDialog,
+                ),
+              ],
             )
           : null,
       body: _isLoading
