@@ -84,11 +84,19 @@ class HomeContent extends StatelessWidget {
               playlists: userPlaylists,
               isLoading: isLoadingUserPlaylists,
               onPlaylistTap: (playlist) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Abriendo ${playlist.name}...'),
-                  ),
-                );
+                if (onPlaylistTap != null) {
+                  onPlaylistTap!(playlist.id, playlist.name);
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PlaylistDetailScreen(
+                        playlistId: playlist.id,
+                        playlistName: playlist.name,
+                      ),
+                    ),
+                  );
+                }
               },
             ),
           ],
