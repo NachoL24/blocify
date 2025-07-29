@@ -15,10 +15,26 @@ class _PlayerPageState extends State<PlayerPage> {
   @override
   void initState() {
     super.initState();
+
+    // Siempre agregar listener para actualizar cuando cambie el estado
+    _playerService.addListener(_onPlayerStateChanged);
+
     // Si no hay canción cargada, cargar una desde Jellyfin
     if (!_playerService.hasSong) {
       _loadJellyfinSong();
     }
+  }
+
+  void _onPlayerStateChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    _playerService.removeListener(_onPlayerStateChanged);
+    super.dispose();
   }
 
   Future<void> _loadJellyfinSong() async {

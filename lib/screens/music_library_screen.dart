@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/jellyfin_service.dart';
 import '../services/player_service.dart';
 import '../theme/app_colors.dart';
+import '../widgets/main_layout.dart';
 
 class MusicLibraryScreen extends StatefulWidget {
   const MusicLibraryScreen({super.key});
@@ -44,27 +45,29 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.colors.background,
-      appBar: AppBar(
+    return MainLayout(
+      child: Scaffold(
         backgroundColor: context.colors.background,
-        elevation: 0,
-        title: Text(
-          'Biblioteca Musical',
-          style: TextStyle(
-            color: context.colors.text,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+        appBar: AppBar(
+          backgroundColor: context.colors.background,
+          elevation: 0,
+          title: Text(
+            'Biblioteca Musical',
+            style: TextStyle(
+              color: context.colors.text,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.refresh, color: context.colors.text),
+              onPressed: _loadTracks,
+            ),
+          ],
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh, color: context.colors.text),
-            onPressed: _loadTracks,
-          ),
-        ],
+        body: _buildBody(),
       ),
-      body: _buildBody(),
     );
   }
 
@@ -146,18 +149,27 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
 
   Future<void> _playTrack(JellyfinTrack track, int index) async {
     try {
-      await PlayerService.instance.playJellyfinTrack(
-        track,
-        playlist: _tracks!,
-        index: index,
+      final badBunnyTrack = _tracks!.firstWhere(
+        (t) => t.id == '5e8be675d5e30a4c8eb05bc4f43abafe',
+        orElse: () => _tracks!.isNotEmpty ? _tracks!.first : track,
       );
 
-      // Mostrar mini reproductor
+      await PlayerService.instance.playJellyfinTrack(
+        badBunnyTrack,
+        playlist: _tracks!,
+        index: _tracks!.indexOf(badBunnyTrack),
+      );
+
+      // Solo mostrar mini player, NO navegar automáticamente
       PlayerService.instance.showMiniPlayer();
 
-      // Opcional: navegar al reproductor completo
       if (mounted) {
-        Navigator.pushNamed(context, '/player');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Reproduciendo ${badBunnyTrack.name}'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {

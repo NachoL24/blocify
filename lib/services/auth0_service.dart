@@ -44,6 +44,18 @@ class Auth0Service extends ChangeNotifier {
 
   /// Establecer estado autenticado
   void _setAuthenticatedState(Credentials credentials) {
+    print('Estado autenticado: ${credentials.accessToken} ${credentials.idToken} ${credentials.refreshToken} ${credentials.expiresAt}');
+    // imprimimos los datos del usuario
+    print('Usuario autenticado: ${credentials.user.toString()}');
+    print('Datos del usuario:');
+    print('  - Name: ${credentials.user.name}');
+    print('  - Email: ${credentials.user.email}'); 
+    print('  - Picture: ${credentials.user.pictureUrl}');
+    print('  - Nickname: ${credentials.user.nickname}');
+    print('  - Given name: ${credentials.user.givenName}');
+    print('  - Sub: ${credentials.user.sub}');
+    print('  - Updated at: ${credentials.user.updatedAt}');
+    print('  - Custom claims: ${credentials.user.customClaims}');
     _isAuthenticated = true;
     _currentCredentials = credentials;
     _currentUser = credentials.user;
@@ -109,7 +121,7 @@ class Auth0Service extends ChangeNotifier {
   }
 
   /// Get user profile from credentials (método legacy para compatibilidad)
-  UserProfile? getUserProfileFromCredentials(Credentials credentials) {
+  UserProfile getUserProfileFromCredentials(Credentials credentials) {
     return credentials.user;
   }
 

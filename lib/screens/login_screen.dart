@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:auth0_flutter/auth0_flutter.dart';
-import 'home_screen.dart';
+import 'main_screen.dart';
 import '../theme/app_colors.dart';
 import '../services/auth0_service.dart';
 
@@ -35,7 +35,6 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _checkExistingLogin() async {
-    // El Auth0Service ya verifica el estado inicial automáticamente
     if (_auth0Service.isAuthenticated && mounted) {
       _navigateToHome();
     }
@@ -50,8 +49,6 @@ class _LoginScreenState extends State<LoginScreen> {
       final credentials = await _auth0Service.login();
       
       if (credentials != null && mounted) {
-        // La navegación se maneja automáticamente por el listener
-        // _navigateToHome() será llamado por _onAuthStateChanged
       } else if (mounted) {
         _showError('Error al iniciar sesión');
       }
@@ -73,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
     
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) => HomeScreen(username: username),
+        builder: (context) => const MainScreen(),
       ),
     );
   }

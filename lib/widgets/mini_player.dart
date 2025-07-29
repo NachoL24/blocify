@@ -50,7 +50,7 @@ class MiniPlayer extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: Row(
             children: [
-              // Album Art
+              
               Container(
                 width: 72,
                 height: 72,
@@ -86,7 +86,7 @@ class MiniPlayer extends StatelessWidget {
                       ),
               ),
 
-              // Song Info
+              
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
@@ -123,7 +123,7 @@ class MiniPlayer extends StatelessWidget {
                 ),
               ),
 
-              // Play/Pause Button
+              
               Container(
                 width: 48,
                 height: 48,
