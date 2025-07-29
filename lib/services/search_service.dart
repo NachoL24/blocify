@@ -14,13 +14,23 @@ class SearchService {
   Future<List<Song>> searchSongs(String query) async {
     final List<Song> results = [];
     try {
-      final tracks = await _jellyfinService.get10Tracks();
-      for (final track in tracks) {
-        var song = Song.fromJellyfinTrack(
-            track, JellyfinService.getAlbumImageUrl(track));
-        results.add(song);
+      if (query.trim().isEmpty) {
+        final tracks = await _jellyfinService.get10Tracks();
+        for (final track in tracks) {
+          var song = Song.fromJellyfinTrack(
+              track, JellyfinService.getAlbumImageUrl(track));
+          results.add(song);
+        }
+        return results;
+      } else {
+        final tracks = await _jellyfinService.searchTracks(query);
+        for (final track in tracks) {
+          var song = Song.fromJellyfinTrack(
+              track, JellyfinService.getAlbumImageUrl(track));
+          results.add(song);
+        }
+        return results;
       }
-      return results;
     } catch (e) {
       print('Error searching songs: $e');
       return [];

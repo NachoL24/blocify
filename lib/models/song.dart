@@ -50,9 +50,8 @@ class Song {
       albumId: track.albumId ?? '',
       duration: track.duration?.inMilliseconds ?? 0,
       id: track.id,
-      picture: pictureUrl != null
-          ? Uint8List.fromList(pictureUrl.codeUnits)
-          : null,
+      picture:
+          pictureUrl != null ? Uint8List.fromList(pictureUrl.codeUnits) : null,
     );
   }
 
@@ -68,5 +67,25 @@ class Song {
       'id': id,
       'picture': picture?.toList(),
     };
+  }
+
+  /// Convertir Song a JellyfinTrack
+  JellyfinTrack toJellyfinTrack() {
+    return JellyfinTrack(
+      id: itemId,
+      name: name,
+      albumId: albumId.isNotEmpty ? albumId : null,
+      albumPrimaryImageTag: null, // No tenemos esta info en Song
+      albumArtist: artist,
+      artists: [artist],
+      artistItems: [
+        JellyfinArtist(
+          id: artistId,
+          name: artist,
+        )
+      ],
+      runTimeTicks: duration * 10000, // Convertir de milliseconds a ticks
+      container: null, // No tenemos esta info en Song
+    );
   }
 }

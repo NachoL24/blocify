@@ -31,7 +31,30 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Future<void> initSearch() async {
-    _searchResults = await _searchService.searchSongs("");
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      _searchResults = await _searchService.searchSongs("");
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar contenido inicial: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -117,22 +140,18 @@ class _SearchScreenState extends State<SearchScreen> {
                               onSongTap: (song) async {
                                 try {
                                   final playerService = PlayerService.instance;
-                                  final tracks =
-                                      await playerService.loadJellyfinTracks();
 
-                                  final badBunnyTrack = tracks.firstWhere(
-                                    (track) =>
-                                        track.id ==
-                                        '5e8be675d5e30a4c8eb05bc4f43abafe',
-                                    orElse: () => tracks.isNotEmpty
-                                        ? tracks.first
-                                        : throw Exception(
-                                            'No tracks available'),
-                                  );
+                                  // Convertir Song a JellyfinTrack
+                                  final jellyfinTrack = song.toJellyfinTrack();
+
+                                  // Convertir toda la lista de resultados a JellyfinTracks
+                                  final jellyfinPlaylist = _searchResults
+                                      .map((s) => s.toJellyfinTrack())
+                                      .toList();
 
                                   await playerService.playJellyfinTrack(
-                                      badBunnyTrack,
-                                      playlist: tracks);
+                                      jellyfinTrack,
+                                      playlist: jellyfinPlaylist);
 
                                   // Mostrar mini player y NO navegar automáticamente
                                   playerService.showMiniPlayer();
@@ -141,7 +160,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
-                                            'Reproduciendo ${badBunnyTrack.name}'),
+                                            'Reproduciendo ${jellyfinTrack.name}'),
                                         duration: const Duration(seconds: 2),
                                       ),
                                     );

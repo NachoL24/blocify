@@ -50,6 +50,27 @@ class JellyfinService {
     }
   }
 
+  Future<List<JellyfinTrack>> searchTracks(String query) async {
+    try {
+      final queryParam = query.split(' ').join('+');
+      final response = await http.get(
+        Uri.parse(
+            '$baseUrl/Items?IncludeItemTypes=Audio&Recursive=true&Limit=10&SearchTerm=$queryParam&api_key=$apiKey'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<dynamic> items = data['Items'] ?? [];
+
+        return items.map((item) => JellyfinTrack.fromJson(item)).toList();
+      } else {
+        throw Exception('Failed to load tracks: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching tracks: $e');
+    }
+  }
+
   static String getStreamUrl(String itemId) {
     return '$baseUrl/Items/$itemId/Download?api_key=$apiKey';
   }
@@ -130,7 +151,6 @@ class JellyfinTrack {
 
   String get streamUrl => JellyfinService.getStreamUrl(id);
   String? get imageUrl => JellyfinService.getAlbumImageUrl(this);
-  
 }
 
 class JellyfinArtist {
