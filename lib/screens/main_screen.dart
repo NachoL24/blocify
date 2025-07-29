@@ -127,8 +127,49 @@ class _MainScreenState extends State<MainScreen> {
 
   void _onItemTapped(int index) {
     setState(() {
+      // Si se toca el mismo tab que ya está activo, recargar contenido
+      if (_selectedIndex == index) {
+        _reloadCurrentContent();
+      }
       _selectedIndex = index;
     });
+  }
+
+  /// Recargar el contenido de la pantalla actual
+  void _reloadCurrentContent() {
+    switch (_selectedIndex) {
+      case 0: // Home
+        _reloadHomeContent();
+        break;
+      case 1: // Search
+        // La búsqueda normalmente no necesita recarga automática
+        break;
+      case 2: // Library
+        _reloadLibraryContent();
+        break;
+    }
+  }
+
+  /// Recargar contenido del Home
+  void _reloadHomeContent() {
+    setState(() {
+      _isLoadingTopPlaylists = true;
+      _isLoadingDiscoverPlaylists = true;
+      _isLoadingUserPlaylists = true;
+    });
+
+    _loadTopPlaylists();
+    _loadDiscoverPlaylists();
+    _loadUserPlaylists();
+  }
+
+  /// Recargar contenido de la Library
+  void _reloadLibraryContent() {
+    setState(() {
+      _isLoadingUserPlaylists = true;
+    });
+
+    _loadUserPlaylists();
   }
 
   Widget _buildCurrentScreen() {

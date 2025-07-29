@@ -1,3 +1,4 @@
+import 'package:blocify/services/jellyfin_service.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../services/search_service.dart';
@@ -17,10 +18,21 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final SearchService _searchService = SearchService.instance;
+  final JellyfinService _jellyfinService = JellyfinService.instance;
   final TextEditingController _searchController = TextEditingController();
   List<Song> _searchResults = [];
   bool _isLoading = false;
-  bool _hasSearched = false;
+  bool _hasSearched = true;
+
+  @override
+  void initState() {
+    super.initState();
+    initSearch();
+  }
+
+  Future<void> initSearch() async {
+    _searchResults = await _searchService.searchSongs("");
+  }
 
   @override
   void dispose() {
@@ -29,14 +41,6 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Future<void> _performSearch(String query) async {
-    if (query.trim().isEmpty) {
-      setState(() {
-        _searchResults = [];
-        _hasSearched = false;
-      });
-      return;
-    }
-
     setState(() {
       _isLoading = true;
       _hasSearched = true;

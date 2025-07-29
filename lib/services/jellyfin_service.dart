@@ -6,11 +6,35 @@ class JellyfinService {
   static String get baseUrl => dotenv.env['API_URL'] ?? 'http://localhost:8096';
   static String get apiKey => dotenv.env['API_KEY'] ?? '';
 
+  JellyfinService._internal();
+  static final JellyfinService instance = JellyfinService._internal();
+  factory JellyfinService() => instance;
+
   static Future<List<JellyfinTrack>> getAllTracks() async {
     try {
       final response = await http.get(
         Uri.parse(
             '$baseUrl/Items?IncludeItemTypes=Audio&Recursive=true&api_key=$apiKey'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<dynamic> items = data['Items'] ?? [];
+
+        return items.map((item) => JellyfinTrack.fromJson(item)).toList();
+      } else {
+        throw Exception('Failed to load tracks: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching tracks: $e');
+    }
+  }
+
+  Future<List<JellyfinTrack>> get10Tracks() async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+            '$baseUrl/Items?IncludeItemTypes=Audio&Recursive=true&Limit=10&api_key=$apiKey'),
       );
 
       if (response.statusCode == 200) {
@@ -106,6 +130,7 @@ class JellyfinTrack {
 
   String get streamUrl => JellyfinService.getStreamUrl(id);
   String? get imageUrl => JellyfinService.getAlbumImageUrl(this);
+  
 }
 
 class JellyfinArtist {

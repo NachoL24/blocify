@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:blocify/services/jellyfin_service.dart';
+
 class Song {
   final String name;
   final String itemId;
@@ -8,7 +10,7 @@ class Song {
   final String album;
   final String albumId;
   final int duration;
-  final int id;
+  final String id;
   final Uint8List? picture;
 
   Song({
@@ -33,7 +35,24 @@ class Song {
       albumId: json['albumId'],
       duration: json['duration'],
       id: json['id'],
-      picture: json['picture'] != null ? Uint8List.fromList(List<int>.from(json['picture'])) : null,
+      picture: json['picture'] != null
+          ? Uint8List.fromList(List<int>.from(json['picture']))
+          : null,
+    );
+  }
+  factory Song.fromJellyfinTrack(JellyfinTrack track, String? pictureUrl) {
+    return Song(
+      name: track.name,
+      itemId: track.id,
+      artist: track.primaryArtist,
+      artistId: track.artistItems.isNotEmpty ? track.artistItems.first.id : '',
+      album: track.albumId != null ? track.albumId! : 'Álbum desconocido',
+      albumId: track.albumId ?? '',
+      duration: track.duration?.inMilliseconds ?? 0,
+      id: track.id,
+      picture: pictureUrl != null
+          ? Uint8List.fromList(pictureUrl.codeUnits)
+          : null,
     );
   }
 

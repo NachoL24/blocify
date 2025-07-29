@@ -46,12 +46,22 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
         setState(() {
           _isLoading = false;
         });
+
+        // Mostrar el error
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al cargar playlist: ${e.toString()}'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
           ),
         );
+
+        // Navegar hacia atrás después de mostrar el error
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted && Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+        });
       }
     }
   }
