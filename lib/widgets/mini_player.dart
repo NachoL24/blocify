@@ -27,7 +27,7 @@ class MiniPlayer extends StatelessWidget {
       onTap: onTap,
       child: Container(
         height: 72,
-        margin: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+        margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
         decoration: BoxDecoration(
           color: context.colors.card1,
           borderRadius: BorderRadius.circular(12),
@@ -50,7 +50,6 @@ class MiniPlayer extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: Row(
             children: [
-              
               Container(
                 width: 72,
                 height: 72,
@@ -85,8 +84,6 @@ class MiniPlayer extends StatelessWidget {
                         ),
                       ),
               ),
-
-              
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
@@ -122,8 +119,6 @@ class MiniPlayer extends StatelessWidget {
                   ),
                 ),
               ),
-
-              
               Container(
                 width: 48,
                 height: 48,
