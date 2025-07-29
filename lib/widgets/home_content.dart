@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 import '../services/auth0_service.dart';
 import '../models/playlist_summary.dart';
 import '../widgets/welcome_header.dart';
@@ -14,6 +13,7 @@ class HomeContent extends StatelessWidget {
   final bool isLoadingTopPlaylists;
   final bool isLoadingDiscoverPlaylists;
   final bool isLoadingUserPlaylists;
+  final void Function(int playlistId, String playlistName)? onPlaylistTap;
 
   const HomeContent({
     super.key,
@@ -24,6 +24,7 @@ class HomeContent extends StatelessWidget {
     required this.isLoadingTopPlaylists,
     required this.isLoadingDiscoverPlaylists,
     required this.isLoadingUserPlaylists,
+    this.onPlaylistTap,
   });
 
   @override
@@ -40,15 +41,19 @@ class HomeContent extends StatelessWidget {
             playlists: topPlaylists,
             isLoading: isLoadingTopPlaylists,
             onPlaylistTap: (playlist) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PlaylistDetailScreen(
-                    playlistId: playlist.id,
-                    playlistName: playlist.name,
+              if (onPlaylistTap != null) {
+                onPlaylistTap!(playlist.id, playlist.name);
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PlaylistDetailScreen(
+                      playlistId: playlist.id,
+                      playlistName: playlist.name,
+                    ),
                   ),
-                ),
-              );
+                );
+              }
             },
           ),
           const SizedBox(height: 32),
@@ -57,15 +62,19 @@ class HomeContent extends StatelessWidget {
             playlists: discoverPlaylists,
             isLoading: isLoadingDiscoverPlaylists,
             onPlaylistTap: (playlist) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PlaylistDetailScreen(
-                    playlistId: playlist.id,
-                    playlistName: playlist.name,
+              if (onPlaylistTap != null) {
+                onPlaylistTap!(playlist.id, playlist.name);
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PlaylistDetailScreen(
+                      playlistId: playlist.id,
+                      playlistName: playlist.name,
+                    ),
                   ),
-                ),
-              );
+                );
+              }
             },
           ),
           if (userPlaylists.isNotEmpty) ...[

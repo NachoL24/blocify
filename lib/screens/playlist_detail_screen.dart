@@ -9,11 +9,15 @@ import '../widgets/main_layout.dart';
 class PlaylistDetailScreen extends StatefulWidget {
   final int playlistId;
   final String playlistName;
+  final bool showBackButton;
+  final VoidCallback? onBackPressed;
 
   const PlaylistDetailScreen({
     super.key,
     required this.playlistId,
     required this.playlistName,
+    this.showBackButton = false,
+    this.onBackPressed,
   });
 
   @override
@@ -68,74 +72,76 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MainLayout(
-      child: Scaffold(
-        backgroundColor: context.colors.background,
-        appBar: AppBar(
-          backgroundColor: context.colors.background,
-          elevation: 0,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: context.colors.text),
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: Text(
-            'Playlist',
-            style: TextStyle(
-              color: context.colors.text,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          centerTitle: true,
-        ),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _playlist == null
-                ? Center(
-                    child: Text(
-                      'No se pudo cargar la playlist',
-                      style: TextStyle(color: context.colors.text),
-                    ),
-                  )
-                : PlaylistContent(
-                    playlist: _playlist!,
-                    onSongTap: (song) async {
-                      try {
-                        final playerService = PlayerService.instance;
-                        final tracks = await playerService.loadJellyfinTracks();
-
-                        final badBunnyTrack = tracks.firstWhere(
-                          (track) =>
-                              track.id == '5e8be675d5e30a4c8eb05bc4f43abafe',
-                          orElse: () => tracks.isNotEmpty
-                              ? tracks.first
-                              : throw Exception('No tracks available'),
-                        );
-
-                        await playerService.playJellyfinTrack(badBunnyTrack,
-                            playlist: tracks);
-
-                        // Mostrar mini player y NO navegar automáticamente
-                        playerService.showMiniPlayer();
-
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content:
-                                  Text('Reproduciendo ${badBunnyTrack.name}'),
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Error al reproducir: $e')),
-                          );
-                        }
-                      }
-                    },
+    final content = Scaffold(
+      backgroundColor: context.colors.background,
+      appBar: widget.showBackButton
+          ? AppBar(
+              backgroundColor: context.colors.background,
+              elevation: 0,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back, color: context.colors.text),
+                onPressed: widget.onBackPressed ?? () => Navigator.pop(context),
+              ),
+              title: Text(
+                'Playlist',
+                style: TextStyle(
+                  color: context.colors.text,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              centerTitle: true,
+            )
+          : null,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _playlist == null
+              ? Center(
+                  child: Text(
+                    'No se pudo cargar la playlist',
+                    style: TextStyle(color: context.colors.text),
                   ),
-      ),
+                )
+              : PlaylistContent(
+                  playlist: _playlist!,
+                  onSongTap: (song) async {
+                    try {
+                      final playerService = PlayerService.instance;
+                      final tracks = await playerService.loadJellyfinTracks();
+
+                      final badBunnyTrack = tracks.firstWhere(
+                        (track) =>
+                            track.id == '5e8be675d5e30a4c8eb05bc4f43abafe',
+                        orElse: () => tracks.isNotEmpty
+                            ? tracks.first
+                            : throw Exception('No tracks available'),
+                      );
+
+                      await playerService.playJellyfinTrack(badBunnyTrack,
+                          playlist: tracks);
+
+                      // El mini player se mostrará automáticamente
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content:
+                                Text('Reproduciendo ${badBunnyTrack.name}'),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error al reproducir: $e')),
+                        );
+                      }
+                    }
+                  },
+                ),
     );
+
+    // Solo usar MainLayout cuando se abre como pantalla independiente
+    return widget.showBackButton ? MainLayout(child: content) : content;
   }
 }

@@ -153,8 +153,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                       jellyfinTrack,
                                       playlist: jellyfinPlaylist);
 
-                                  // Mostrar mini player y NO navegar automáticamente
-                                  playerService.showMiniPlayer();
+                                  // El mini player se mostrará automáticamente
 
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
