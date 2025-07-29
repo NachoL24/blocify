@@ -22,8 +22,7 @@ class MainLayout extends StatelessWidget {
             Positioned(
               left: 0,
               right: 0,
-              bottom:
-                  80, 
+              bottom: 80,
               child: AnimatedBuilder(
                 animation: PlayerService.instance,
                 builder: (context, _) {
@@ -40,6 +39,11 @@ class MainLayout extends StatelessWidget {
                     albumArt: playerService.currentAlbumArt,
                     isPlaying: playerService.isPlaying,
                     onPlayPause: playerService.togglePlayPause,
+                    onNext:
+                        playerService.hasNext ? playerService.playNext : null,
+                    onPrevious: playerService.hasPrevious
+                        ? playerService.playPrevious
+                        : null,
                     onTap: () {
                       Navigator.pushNamed(context, '/player');
                     },
