@@ -106,16 +106,16 @@ class PlayerService extends ChangeNotifier {
   Future<void> playNext() async {
     debugPrint('🎵 playNext() called');
     logPlaylistState();
-    
+
     if (hasNext) {
       _currentTrackIndex++;
       final nextTrack = _playlist[_currentTrackIndex];
       _currentTrack = nextTrack;
       _isPlayerVisible = true;
-      
+
       debugPrint('🎵 Moving to next track: ${nextTrack.name}');
       notifyListeners(); // Notificar antes de la operación asíncrona
-      
+
       try {
         await _player.setUrl(nextTrack.streamUrl);
         await _player.play();
@@ -132,16 +132,16 @@ class PlayerService extends ChangeNotifier {
   Future<void> playPrevious() async {
     debugPrint('🎵 playPrevious() called');
     logPlaylistState();
-    
+
     if (hasPrevious) {
       _currentTrackIndex--;
       final previousTrack = _playlist[_currentTrackIndex];
       _currentTrack = previousTrack;
       _isPlayerVisible = true;
-      
+
       debugPrint('🎵 Moving to previous track: ${previousTrack.name}');
       notifyListeners(); // Notificar antes de la operación asíncrona
-      
+
       try {
         await _player.setUrl(previousTrack.streamUrl);
         await _player.play();
