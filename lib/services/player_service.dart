@@ -457,9 +457,9 @@ class PlayerService extends ChangeNotifier {
       case 1:
         return Icons.repeat; // Loop lista completa
       case 2:
-        return _isBlockMode ? Icons.repeat_one_on : Icons.repeat_one; // Loop bloque/canción
+        return _isBlockMode ? Icons.view_module_outlined : Icons.repeat_one; // Loop bloque (modo blocks) / canción (modo normal)
       case 3:
-        return Icons.repeat_one_on; // Loop canción sola (solo blocks)
+        return Icons.audiotrack; // Loop canción sola (solo blocks) - icono de pista de audio
       default:
         return Icons.repeat_outlined;
     }
