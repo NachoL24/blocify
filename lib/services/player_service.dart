@@ -299,7 +299,80 @@ class PlayerService extends ChangeNotifier {
 
   void setRandomMode(bool isEnabled) {
     _isRandomMode = isEnabled;
+
+    // Si hay una playlist activa del backend, regenerar la cola con el nuevo modo
+    if (_currentPlaylistId != null && _currentTrack != null) {
+      _regeneratePlaylistQueue();
+    }
+
     notifyListeners();
+  }
+
+  // Regenerar la cola de reproducción cuando cambia el modo aleatorio
+  Future<void> _regeneratePlaylistQueue() async {
+    if (_currentPlaylistId == null || _currentTrack == null) return;
+
+    try {
+      debugPrint('🔀 Regenerando cola con random=$_isRandomMode para playlist $_currentPlaylistId');
+
+      // Obtener nueva cola del backend con el modo aleatorio actualizado
+      final queueData = await PlaylistService.instance.getPlaylistReproductionQueue(
+        _currentPlaylistId!,
+        random: _isRandomMode,
+        block: false,
+      );
+
+      // Convertir las canciones del backend a JellyfinTrack
+      final songs = queueData['songs'] as List<dynamic>;
+      final newTracks = songs.map((songJson) => _songToJellyfinTrack(songJson)).toList();
+
+      if (newTracks.isNotEmpty) {
+        final currentTrackId = _currentTrack!.id;
+
+        // Si está en modo aleatorio, mover la canción actual al inicio
+        if (_isRandomMode) {
+          // Encontrar la canción actual en la nueva cola
+          final currentTrackIndex = newTracks.indexWhere((track) => track.id == currentTrackId);
+
+          if (currentTrackIndex != -1) {
+            // Remover la canción actual de su posición
+            final currentTrack = newTracks.removeAt(currentTrackIndex);
+            // Insertarla al inicio
+            newTracks.insert(0, currentTrack);
+            debugPrint('🔀 Canción actual movida al inicio de la cola aleatoria');
+          }
+
+          // Actualizar la playlist con la canción actual al inicio
+          _playlist = newTracks;
+          _originalQueue = List.from(newTracks);
+          _currentTrackIndex = 0; // La canción actual está ahora en el índice 0
+
+        } else {
+          // Modo normal - mantener orden original del backend
+          _playlist = newTracks;
+          _originalQueue = List.from(newTracks);
+
+          // Encontrar la posición de la canción actual en el orden normal
+          int newIndex = newTracks.indexWhere((track) => track.id == currentTrackId);
+          if (newIndex != -1) {
+            _currentTrackIndex = newIndex;
+          } else {
+            // Si no se encuentra, usar la primera
+            _currentTrackIndex = 0;
+            _currentTrack = newTracks[0];
+          }
+        }
+
+        // Eliminar la canción actual de la cola para evitar duplicados
+        _removeCurrentSongFromQueue();
+
+        debugPrint('🔀 Cola regenerada: ${newTracks.length} canciones, índice actual: $_currentTrackIndex');
+        debugPrint('🔀 Modo aleatorio: $_isRandomMode, canción actual: ${_currentTrack!.name}');
+        logPlaylistState();
+      }
+    } catch (e) {
+      debugPrint('❌ Error regenerando cola: $e');
+    }
   }
 
   void setPlaylistId(int playlistId) {
