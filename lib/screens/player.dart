@@ -202,6 +202,29 @@ class _PlayerPageState extends State<PlayerPage> {
                               ),
                               textAlign: TextAlign.center,
                             ),
+                          // Mostrar nombre del bloque actual si está en modo blocks
+                          if (_playerService.isBlockMode && _playerService.currentBlockName != null) ...[
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: context.colors.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: context.colors.primary.withOpacity(0.3),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                'Bloque: ${_playerService.currentBlockName}',
+                                style: TextStyle(
+                                  color: context.colors.primary,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
 
@@ -339,6 +362,76 @@ class _PlayerPageState extends State<PlayerPage> {
                                   ),
                                 ],
                               ),
+
+                              // Controles de bloques (solo si está activado el modo blocks)
+                              if (_playerService.isBlockMode && _playerService.currentPlaylistId != null) ...[
+                                const SizedBox(height: 16),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: context.colors.surface,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.3),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      // Botón bloque anterior
+                                      IconButton(
+                                        iconSize: 24,
+                                        icon: const Icon(
+                                          Icons.skip_previous,
+                                          color: Colors.white,
+                                        ),
+                                        onPressed: _playerService.previousBlock,
+                                        tooltip: 'Bloque anterior',
+                                      ),
+
+                                      // Indicador de modo blocks
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(16),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(
+                                              Icons.view_module,
+                                              size: 16,
+                                              color: Colors.white,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              _playerService.currentBlockName ?? 'Bloques',
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+
+                                      // Botón bloque siguiente
+                                      IconButton(
+                                        iconSize: 24,
+                                        icon: const Icon(
+                                          Icons.skip_next,
+                                          color: Colors.white,
+                                        ),
+                                        onPressed: _playerService.nextBlock,
+                                        tooltip: 'Bloque siguiente',
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
 
                               const SizedBox(height: 24),
                             ],

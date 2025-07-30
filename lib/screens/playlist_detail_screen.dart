@@ -4,6 +4,7 @@ import '../services/playlist_service.dart';
 import '../services/player_service.dart';
 import '../models/playlist.dart';
 import '../widgets/playlist_content.dart';
+import '../widgets/playlist_controls_bar.dart';
 import '../widgets/main_layout.dart';
 
 class PlaylistDetailScreen extends StatefulWidget {

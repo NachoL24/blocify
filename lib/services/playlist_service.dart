@@ -201,7 +201,17 @@ class PlaylistService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print('✅ Cola de reproducción obtenida: ${data['songs']?.length} canciones');
+
+        // Debug mejorado para mostrar información correcta según el modo
+        if (data['blocks'] != null) {
+          final totalSongs = (data['blocks'] as List).fold<int>(0, (sum, block) => sum + (block['songs'] as List).length);
+          print('✅ Cola de reproducción obtenida: ${data['blocks'].length} bloques con $totalSongs canciones total');
+        } else if (data['songs'] != null) {
+          print('✅ Cola de reproducción obtenida: ${data['songs'].length} canciones');
+        } else {
+          print('⚠️ Cola de reproducción vacía o formato desconocido');
+        }
+
         return data;
       } else {
         throw Exception('Error al obtener cola de reproducción: ${response.statusCode}');

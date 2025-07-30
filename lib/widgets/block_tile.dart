@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../models/block.dart';
+import '../services/player_service.dart';
 import '../widgets/song_tile.dart';
 
 class BlockTile extends StatefulWidget {
   final Block block;
+  final int playlistId;
   final VoidCallback onTap;
 
   const BlockTile({
     super.key,
     required this.block,
+    required this.playlistId,
     required this.onTap,
   });
 
@@ -82,7 +85,6 @@ class _BlockTileState extends State<BlockTile> {
           },
         ),
         if (_isExpanded)
-          
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -93,10 +95,37 @@ class _BlockTileState extends State<BlockTile> {
                 padding: const EdgeInsets.only(left: 16.0),
                 child: SongTile(
                   song: song,
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Reproduciendo ${song.name} desde ${widget.block.name}...')),
-                    );
+                  onTap: () async {
+                    try {
+                      final playerService = PlayerService.instance;
+
+                      // Usar el método playFromBlock para reproducir desde el bloque específico
+                      await playerService.playFromBlock(
+                        widget.playlistId,
+                        widget.block.id,
+                        song.itemId,
+                      );
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Reproduciendo ${song.name} desde ${widget.block.name}'),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      debugPrint('Error al reproducir canción desde bloque: $e');
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error al reproducir: ${e.toString()}'),
+                            backgroundColor: Colors.red,
+                            duration: const Duration(seconds: 3),
+                          ),
+                        );
+                      }
+                    }
                   },
                 ),
               );
