@@ -266,11 +266,12 @@ class _PlayerPageState extends State<PlayerPage> {
                                     iconSize: 28,
                                     icon: Icon(
                                       Icons.shuffle,
-                                      color:
-                                          context.colors.text.withOpacity(0.7),
+                                      color: _playerService.isRandomMode
+                                          ? context.colors.primary
+                                          : context.colors.text.withOpacity(0.7),
                                     ),
                                     onPressed: () {
-                                      // TODO: Implementar shuffle
+                                      _playerService.setRandomMode(!_playerService.isRandomMode);
                                     },
                                   ),
 

@@ -175,4 +175,40 @@ class PlaylistService {
       throw Exception('Error de conexión al cargar la playlist');
     }
   }
+
+  Future<Map<String, dynamic>> getPlaylistReproductionQueue(
+    int playlistId, {
+    required bool random,
+    required bool block,
+    int? countBlock,
+  }) async {
+    try {
+      final queryParams = <String, String>{
+        'random': random.toString(),
+        'block': block.toString(),
+      };
+
+      if (block && countBlock != null) {
+        queryParams['countBlock'] = countBlock.toString();
+      }
+
+      final uri = Uri.parse('/api/reproduction/playlist/$playlistId')
+          .replace(queryParameters: queryParams);
+
+      print('🎵 Obteniendo cola de reproducción: ${uri.toString()}');
+
+      final response = await _httpService.get(uri.toString());
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print('✅ Cola de reproducción obtenida: ${data['songs']?.length} canciones');
+        return data;
+      } else {
+        throw Exception('Error al obtener cola de reproducción: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error en getPlaylistReproductionQueue: $e');
+      throw Exception('Error al obtener cola de reproducción: $e');
+    }
+  }
 }

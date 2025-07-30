@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'jellyfin_service.dart';
+import 'playlist_service.dart';
 
 class PlayerService extends ChangeNotifier {
   static final PlayerService _instance = PlayerService._internal();
@@ -23,6 +24,9 @@ class PlayerService extends ChangeNotifier {
   bool _isPlayerVisible = false;
   List<JellyfinTrack> _playlist = [];
   int _currentTrackIndex = -1;
+  bool _isRandomMode = false;
+  int? _currentPlaylistId;
+  List<JellyfinTrack> _originalQueue = [];
 
   AudioPlayer get player => _player;
   JellyfinTrack? get currentTrack => _currentTrack;
@@ -37,6 +41,8 @@ class PlayerService extends ChangeNotifier {
   int get currentTrackIndex => _currentTrackIndex;
   bool get hasNext => _currentTrackIndex < _playlist.length - 1;
   bool get hasPrevious => _currentTrackIndex > 0;
+  bool get isRandomMode => _isRandomMode;
+  int? get currentPlaylistId => _currentPlaylistId;
 
   // Debug methods to track playlist state
   void logPlaylistState() {
@@ -114,6 +120,13 @@ class PlayerService extends ChangeNotifier {
       _isPlayerVisible = true;
 
       debugPrint('🎵 Moving to next track: ${nextTrack.name}');
+
+      // Si estamos reproduciendo desde una playlist del backend,
+      // actualizar la cola para eliminar la canción actual
+      if (_currentPlaylistId != null) {
+        _removeCurrentSongFromQueue();
+      }
+
       notifyListeners(); // Notificar antes de la operación asíncrona
 
       try {
@@ -206,6 +219,106 @@ class PlayerService extends ChangeNotifier {
       debugPrint('Error loading Jellyfin tracks: $e');
       return [];
     }
+  }
+
+  // Método para reproducir desde una playlist usando la cola del backend
+  Future<void> playFromPlaylist(int playlistId, String songId) async {
+    try {
+      debugPrint('🎵 Reproduciendo desde playlist $playlistId, canción $songId');
+
+      // Obtener la cola de reproducción del backend
+      final queueData = await PlaylistService.instance.getPlaylistReproductionQueue(
+        playlistId,
+        random: _isRandomMode,
+        block: false, // Como solicitas, block debe ser false
+      );
+
+      // Convertir las canciones del backend a JellyfinTrack
+      final songs = queueData['songs'] as List<dynamic>;
+      final tracks = songs.map((songJson) => _songToJellyfinTrack(songJson)).toList();
+
+      if (tracks.isEmpty) {
+        throw Exception('No hay canciones en la cola de reproducción');
+      }
+
+      // Encontrar el índice de la canción que se quiere reproducir
+      int startIndex = tracks.indexWhere((track) => track.id == songId);
+      if (startIndex == -1) {
+        startIndex = 0; // Si no se encuentra, empezar por la primera
+      }
+
+      // Configurar la cola y el estado
+      _playlist = tracks;
+      _originalQueue = List.from(tracks);
+      _currentPlaylistId = playlistId;
+      _currentTrackIndex = startIndex;
+      _currentTrack = tracks[startIndex];
+      _isPlayerVisible = true;
+
+      debugPrint('🎵 Cola configurada con ${tracks.length} canciones, empezando en índice $startIndex');
+
+      // Eliminar la canción actual de la cola para evitar duplicados
+      _removeCurrentSongFromQueue();
+
+      // Notificar antes de la operación asíncrona
+      notifyListeners();
+
+      // Reproducir la canción
+      await _player.setUrl(_currentTrack!.streamUrl);
+      await _player.play();
+
+      notifyListeners();
+      logPlaylistState();
+    } catch (e) {
+      debugPrint('❌ Error reproduciendo desde playlist: $e');
+      throw Exception('Error al reproducir desde playlist: $e');
+    }
+  }
+
+  // Convertir una canción del backend a JellyfinTrack
+  JellyfinTrack _songToJellyfinTrack(Map<String, dynamic> songJson) {
+    // El itemId del backend es el ID de Jellyfin que necesitamos
+    final jellyfinId = songJson['itemId'] ?? songJson['id'].toString();
+
+    return JellyfinTrack(
+      id: jellyfinId, // Usar el itemId que viene del backend
+      name: songJson['name'] ?? 'Canción sin nombre',
+      artists: [songJson['artist'] ?? 'Artista desconocido'],
+      artistItems: [], // Se puede expandir si es necesario
+      albumId: songJson['albumId'], // Usar el albumId del backend para las imágenes
+    );
+  }
+
+  // Eliminar la canción actual de la cola para evitar duplicados
+  void _removeCurrentSongFromQueue() {
+    if (_currentTrack != null && _originalQueue.isNotEmpty) {
+      _originalQueue.removeWhere((track) => track.id == _currentTrack!.id);
+      debugPrint('🎵 Canción actual eliminada de la cola. Cola restante: ${_originalQueue.length} canciones');
+    }
+  }
+
+  void setRandomMode(bool isEnabled) {
+    _isRandomMode = isEnabled;
+    notifyListeners();
+  }
+
+  void setPlaylistId(int playlistId) {
+    _currentPlaylistId = playlistId;
+    notifyListeners();
+  }
+
+  void addToQueue(List<JellyfinTrack> tracks) {
+    _originalQueue.addAll(tracks);
+    notifyListeners();
+  }
+
+  void clearQueue() {
+    _originalQueue.clear();
+    notifyListeners();
+  }
+
+  List<JellyfinTrack> getQueue() {
+    return List.unmodifiable(_originalQueue);
   }
 
   @override
