@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'jellyfin_service.dart';
 import 'playlist_service.dart';
@@ -13,6 +14,13 @@ class PlayerService extends ChangeNotifier {
       if (_isPlaying != playing) {
         _isPlaying = playing;
         notifyListeners();
+      }
+    });
+
+    // Escuchar cuando una canción termina para manejar la lógica de loop
+    _player.playerStateStream.listen((playerState) {
+      if (playerState.processingState == ProcessingState.completed) {
+        _handleSongCompletion();
       }
     });
   }
@@ -34,6 +42,9 @@ class PlayerService extends ChangeNotifier {
   int _currentBlockIndex = 0;
   int _currentSongInBlockIndex = 0;
 
+  // Estados de loop: 0=desactivado, 1=lista completa, 2=bloque/canción actual, 3=canción sola (solo en modo blocks)
+  int _loopMode = 0;
+
   AudioPlayer get player => _player;
   JellyfinTrack? get currentTrack => _currentTrack;
   String? get currentSongTitle => _currentTrack?.name;
@@ -50,6 +61,7 @@ class PlayerService extends ChangeNotifier {
   bool get isRandomMode => _isRandomMode;
   bool get isBlockMode => _isBlockMode;
   int? get currentPlaylistId => _currentPlaylistId;
+  int get loopMode => _loopMode;
 
   // Nuevos getters para bloques
   List<Map<String, dynamic>> get blocks => _blocks;
@@ -422,6 +434,65 @@ class PlayerService extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Método para cambiar entre estados de loop
+  void toggleLoopMode() {
+    if (_isBlockMode) {
+      // En modo blocks: 0 -> 1 -> 2 -> 3 -> 0
+      _loopMode = (_loopMode + 1) % 4;
+    } else {
+      // En modo playlist normal: 0 -> 1 -> 2 -> 0 (sin estado 3)
+      _loopMode = (_loopMode + 1) % 3;
+      if (_loopMode == 3) _loopMode = 0; // Asegurar que no llegue a 3 en modo playlist
+    }
+
+    debugPrint('🔁 Loop mode cambiado a: $_loopMode');
+    notifyListeners();
+  }
+
+  // Getter para obtener el icono y descripción del estado actual de loop
+  IconData get loopIcon {
+    switch (_loopMode) {
+      case 0:
+        return Icons.repeat_outlined; // Desactivado
+      case 1:
+        return Icons.repeat; // Loop lista completa
+      case 2:
+        return _isBlockMode ? Icons.repeat_one_on : Icons.repeat_one; // Loop bloque/canción
+      case 3:
+        return Icons.repeat_one_on; // Loop canción sola (solo blocks)
+      default:
+        return Icons.repeat_outlined;
+    }
+  }
+
+  String get loopDescription {
+    if (_isBlockMode) {
+      switch (_loopMode) {
+        case 0:
+          return 'Sin repetición';
+        case 1:
+          return 'Repetir todos los bloques';
+        case 2:
+          return 'Repetir bloque actual';
+        case 3:
+          return 'Repetir canción actual';
+        default:
+          return 'Sin repetición';
+      }
+    } else {
+      switch (_loopMode) {
+        case 0:
+          return 'Sin repetición';
+        case 1:
+          return 'Repetir playlist';
+        case 2:
+          return 'Repetir canción actual';
+        default:
+          return 'Sin repetición';
+      }
+    }
+  }
+
   // Método para reproducir playlist completa (desde el botón play en playlist detail)
   Future<void> playEntirePlaylist(int playlistId) async {
     try {
@@ -649,6 +720,125 @@ class PlayerService extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint('❌ Error regenerando cola: $e');
+    }
+  }
+
+  // Manejar la lógica cuando una canción termina
+  void _handleSongCompletion() async {
+    debugPrint('🎵 Canción terminada. Loop mode: $_loopMode, Block mode: $_isBlockMode');
+
+    switch (_loopMode) {
+      case 0: // Desactivado
+        if (_isBlockMode) {
+          // En modo blocks: cuando termina el bloque se pausa
+          if (_currentSongInBlockIndex < _playlist.length - 1) {
+            // Hay más canciones en el bloque actual
+            await playNext();
+          } else {
+            // Se terminó el bloque, pausar
+            debugPrint('🔲 Bloque terminado - pausando reproducción');
+            await pause();
+          }
+        } else {
+          // En modo playlist: cuando termina la playlist se pausa
+          if (hasNext) {
+            await playNext();
+          } else {
+            debugPrint('🎵 Playlist terminada - pausando reproducción');
+            await pause();
+          }
+        }
+        break;
+
+      case 1: // Loop lista completa
+        if (_isBlockMode) {
+          // En modo blocks: loop todos los bloques
+          if (_currentSongInBlockIndex < _playlist.length - 1) {
+            // Hay más canciones en el bloque actual
+            await playNext();
+          } else if (hasNextBlock) {
+            // Pasar al siguiente bloque
+            await _moveToNextBlock();
+          } else {
+            // Se terminaron todos los bloques, volver al primer bloque
+            debugPrint('🔁 Todos los bloques terminados - volviendo al primer bloque');
+            _currentBlockIndex = 0;
+            await _loadCurrentBlock();
+          }
+        } else {
+          // En modo playlist: loop la playlist completa
+          if (hasNext) {
+            await playNext();
+          } else {
+            // Volver al inicio de la playlist
+            debugPrint('🔁 Playlist terminada - volviendo al inicio');
+            _currentTrackIndex = 0;
+            _currentTrack = _playlist[0];
+            await _player.setUrl(_currentTrack!.streamUrl);
+            await _player.play();
+            notifyListeners();
+          }
+        }
+        break;
+
+      case 2: // Loop bloque/canción actual
+        if (_isBlockMode) {
+          // En modo blocks: loop del bloque actual
+          if (_currentSongInBlockIndex < _playlist.length - 1) {
+            // Hay más canciones en el bloque actual
+            await playNext();
+          } else {
+            // Se terminó el bloque, volver al inicio del bloque
+            debugPrint('🔁 Bloque terminado - volviendo al inicio del bloque');
+            _currentSongInBlockIndex = 0;
+            _currentTrackIndex = 0;
+            _currentTrack = _playlist[0];
+            await _player.setUrl(_currentTrack!.streamUrl);
+            await _player.play();
+            notifyListeners();
+          }
+        } else {
+          // En modo playlist: loop de la canción actual
+          debugPrint('🔁 Repitiendo canción actual');
+          await _player.seek(Duration.zero);
+          await _player.play();
+        }
+        break;
+
+      case 3: // Loop canción sola (solo en modo blocks)
+        if (_isBlockMode) {
+          debugPrint('🔁 Repitiendo canción actual (modo 3)');
+          await _player.seek(Duration.zero);
+          await _player.play();
+        }
+        break;
+    }
+  }
+
+  // Método auxiliar para cargar el bloque actual
+  Future<void> _loadCurrentBlock() async {
+    try {
+      final currentBlock = _blocks[_currentBlockIndex];
+      final songs = currentBlock['songs'] as List<dynamic>;
+      final tracks = songs.map((songJson) => _songToJellyfinTrack(songJson)).toList();
+
+      if (tracks.isNotEmpty) {
+        _playlist = tracks;
+        _currentTrackIndex = 0;
+        _currentSongInBlockIndex = 0;
+        _currentTrack = tracks[0];
+
+        debugPrint('🔲 Cargando bloque ${currentBlock['name']} con ${tracks.length} canciones');
+
+        notifyListeners();
+
+        await _player.setUrl(_currentTrack!.streamUrl);
+        await _player.play();
+
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('❌ Error cargando bloque actual: $e');
     }
   }
 }

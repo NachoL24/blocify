@@ -352,13 +352,15 @@ class _PlayerPageState extends State<PlayerPage> {
                                   IconButton(
                                     iconSize: 28,
                                     icon: Icon(
-                                      Icons.repeat,
-                                      color:
-                                          context.colors.text.withOpacity(0.7),
+                                      _playerService.loopIcon,
+                                      color: _playerService.loopMode > 0
+                                          ? context.colors.primary
+                                          : context.colors.text.withOpacity(0.7),
                                     ),
                                     onPressed: () {
-                                      // TODO: Implementar repeat
+                                      _playerService.toggleLoopMode();
                                     },
+                                    tooltip: _playerService.loopDescription,
                                   ),
                                 ],
                               ),
