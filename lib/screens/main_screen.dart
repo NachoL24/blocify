@@ -56,9 +56,7 @@ class _MainScreenState extends State<MainScreen> {
     // Configurar servicios con variables de entorno
     _jellyfinApiKey = dotenv.env['API_KEY'];
     _playlistService.configure();
-    if (_jellyfinApiKey != null) {
-      _artistService.configure(_jellyfinApiKey!);
-    }
+
   }
 
   void _loadInitialData() {

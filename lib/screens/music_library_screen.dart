@@ -35,7 +35,6 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
   @override
   void initState() {
     super.initState();
-    _artistService.configure(widget.apiKey);
     _loadUserPlaylists();
   }
 

@@ -195,7 +195,7 @@ class LibraryContent extends StatelessWidget {
           ),
         ),
         subtitle: Text(
-          '${playlist.songCount} canciones',
+          '${playlist.songCount} songs',
           style: TextStyle(
             color: context.colors.secondaryText,
             fontSize: 13,
@@ -274,7 +274,7 @@ class LibraryContent extends StatelessWidget {
           ),
         ),
         subtitle: Text(
-          '${artist.songCount} canciones',
+          '${artist.songCount} songs',
           style: TextStyle(
             color: context.colors.secondaryText,
             fontSize: 13,

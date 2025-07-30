@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import '../models/artist.dart';
 
@@ -7,14 +8,17 @@ class ArtistService {
   factory ArtistService() => _instance;
   ArtistService._internal();
 
-  static const String _baseUrl = 'http://localhost:8096';
-  String? _apiKey;
+  // Usamos las variables de entorno correctamente
+  static String get _baseUrl => dotenv.env['BASE_JELLYFIN_URL'] ?? 'http://localhost:8096';
+  static String get _apiKey => dotenv.env['API_KEY'] ?? '';
 
-  void configure(String apiKey) {
-    _apiKey = apiKey;
-  }
+  List<ArtistSummary>? _cachedArtists;
 
-  Future<List<ArtistSummary>> getUserArtists() async {
+  Future<List<ArtistSummary>> getUserArtists({bool forceRefresh = false}) async {
+    if (_cachedArtists != null && !forceRefresh) {
+      return _cachedArtists!;
+    }
+
     try {
       final response = await http.get(
         Uri.parse('$_baseUrl/Items?IncludeItemTypes=MusicArtist&Recursive=true&api_key=$_apiKey'),
@@ -32,7 +36,12 @@ class ArtistService {
             artists.map((a) => _getArtistSongCount(a.id))
         );
 
-        return List.generate(artists.length, (i) => artists[i].copyWith(songCount: counts[i]));
+        _cachedArtists = List.generate(
+            artists.length,
+                (i) => artists[i].copyWith(songCount: counts[i])
+        );
+
+        return _cachedArtists!;
       } else {
         throw Exception('Failed to load artists: ${response.statusCode}');
       }
@@ -73,5 +82,9 @@ class ArtistService {
     } catch (e) {
       throw Exception('Error searching artists: $e');
     }
+  }
+
+  void clearCache() {
+    _cachedArtists = null;
   }
 }
