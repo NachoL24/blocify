@@ -21,12 +21,14 @@ class Playlist {
       id: json['id'],
       name: json['name'],
       description: json['description'],
-      songs: (json['songs'] as List<dynamic>?)
-          ?.map((songJson) => Song.fromJson(songJson))
-          .toList() ?? [],
+      songs: (json['song'] as List<dynamic>?)
+              ?.map((songJson) => Song.fromJson(songJson))
+              .toList() ??
+          [],
       blocks: (json['blocks'] as List<dynamic>?)
-          ?.map((blockJson) => Block.fromJson(blockJson))
-          .toList() ?? [],
+              ?.map((blockJson) => Block.fromJson(blockJson))
+              .toList() ??
+          [],
     );
   }
 

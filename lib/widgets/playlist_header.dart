@@ -11,14 +11,26 @@ class PlaylistHeader extends StatelessWidget {
   });
 
   String _getTotalDuration() {
-    final totalSeconds =
+    final songsSeconds =
         playlist.songs.fold(0, (sum, song) => sum + song.duration);
+    final blockSeconds = playlist.blocks.fold(
+        0,
+        (sum, block) =>
+            sum +
+            block.songs.fold(0, (blockSum, song) => blockSum + song.duration));
+    final totalSeconds = songsSeconds + blockSeconds;
     final hours = totalSeconds ~/ 3600;
     final minutes = (totalSeconds % 3600) ~/ 60;
     if (hours > 0) {
       return '${hours}h ${minutes}m';
     }
     return '${minutes}m';
+  }
+
+  String getTotalSongs() {
+    return (playlist.songs.length +
+            playlist.blocks.fold(0, (sum, block) => sum + block.songs.length))
+        .toString();
   }
 
   @override
@@ -58,7 +70,7 @@ class PlaylistHeader extends StatelessWidget {
 
         // Información de la playlist
         Text(
-          '${playlist.songs.length} songs • ${_getTotalDuration()}',
+          '${getTotalSongs()} songs • ${_getTotalDuration()}',
           style: TextStyle(
             color: context.colors.secondaryText,
             fontSize: 14,
