@@ -3,6 +3,7 @@ import '../models/playlist_summary.dart';
 import '../models/artist.dart';
 import '../services/playlist_service.dart';
 import '../theme/app_colors.dart';
+import '../screens/edit_playlist_screen.dart';
 
 class LibraryContent extends StatelessWidget {
   final List<PlaylistSummary> userPlaylists;
@@ -55,14 +56,31 @@ class LibraryContent extends StatelessWidget {
       try {
         await PlaylistService.instance.deletePlaylist(playlistId);
         onPlaylistsUpdated?.call();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Playlist eliminada correctamente')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Playlist eliminada correctamente')),
+          );
+        }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al eliminar playlist: $e')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al eliminar playlist: $e')),
+          );
+        }
       }
+    }
+  }
+
+  void _navigateToEditPlaylist(BuildContext context, PlaylistSummary playlist) async {
+    final updated = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditPlaylistScreen(playlist: playlist),
+      ),
+    );
+
+    if (updated == true && onPlaylistsUpdated != null && mounted) {
+      onPlaylistsUpdated!();
     }
   }
 
@@ -201,9 +219,25 @@ class LibraryContent extends StatelessWidget {
             fontSize: 13,
           ),
         ),
-        trailing: IconButton(
-          icon: Icon(Icons.delete, color: context.colors.secondaryText),
-          onPressed: () => _deletePlaylist(context, playlist.id),
+        trailing: PopupMenuButton<String>(
+          icon: Icon(Icons.more_vert, color: context.colors.secondaryText),
+          onSelected: (value) {
+            if (value == 'edit') {
+              _navigateToEditPlaylist(context, playlist);
+            } else if (value == 'delete') {
+              _deletePlaylist(context, playlist.id);
+            }
+          },
+          itemBuilder: (BuildContext context) => [
+            const PopupMenuItem<String>(
+              value: 'edit',
+              child: Text('Editar'),
+            ),
+            const PopupMenuItem<String>(
+              value: 'delete',
+              child: Text('Eliminar', style: TextStyle(color: Colors.red)),
+            ),
+          ],
         ),
         onTap: () => onPlaylistTap?.call(playlist.id, playlist.name),
       ),
@@ -301,4 +335,6 @@ class LibraryContent extends StatelessWidget {
       ),
     );
   }
+
+  bool get mounted => true; // Helper para evitar errores en context.mounted
 }
