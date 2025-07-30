@@ -3,138 +3,51 @@ import '../theme/app_colors.dart';
 import '../models/playlist_summary.dart';
 import '../services/playlist_service.dart';
 
-class LibraryContent extends StatefulWidget {
+class LibraryContent extends StatelessWidget {
   final List<PlaylistSummary> userPlaylists;
-  final bool isLoadingUserPlaylists;
   final void Function(int playlistId, String playlistName)? onPlaylistTap;
   final VoidCallback? onPlaylistsUpdated;
+  final void Function(int playlistId)? onDelete;
+  final bool isLoadingUserPlaylists;
 
   const LibraryContent({
     super.key,
     required this.userPlaylists,
-    required this.isLoadingUserPlaylists,
     this.onPlaylistTap,
     this.onPlaylistsUpdated,
+    this.onDelete,
+    required this.isLoadingUserPlaylists,
   });
 
-  @override
-  State<LibraryContent> createState() => _LibraryContentState();
-}
-
-class _LibraryContentState extends State<LibraryContent> {
-  final PlaylistService _playlistService = PlaylistService.instance;
-
-  void _showCreatePlaylistDialog() {
-    final nameController = TextEditingController();
-    final descriptionController = TextEditingController();
-
-    showDialog(
+  void _deletePlaylist(BuildContext context, int playlistId) async {
+    final confirm = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: context.colors.background,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+      builder: (_) => AlertDialog(
+        title: const Text("Eliminar Playlist"),
+        content: const Text("¿Estás seguro de que querés eliminar esta playlist?"),
+        actions: [
+          TextButton(
+            child: const Text("Cancelar"),
+            onPressed: () => Navigator.pop(context, false),
           ),
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.9,
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Crear Nueva Playlist',
-                  style: TextStyle(
-                    color: context.colors.text,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                TextField(
-                  controller: nameController,
-                  style: TextStyle(color: context.colors.text),
-                  decoration: InputDecoration(
-                    labelText: 'Nombre de la playlist',
-                    labelStyle: TextStyle(color: context.colors.secondaryText),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: context.colors.lightGray),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: context.primaryColor),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: descriptionController,
-                  style: TextStyle(color: context.colors.text),
-                  decoration: InputDecoration(
-                    hintText: 'Descripción (opcional)',
-                    hintStyle: TextStyle(color: context.colors.secondaryText),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: context.colors.lightGray),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: context.primaryColor),
-                    ),
-                  ),
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text(
-                        'Cancelar',
-                        style: TextStyle(color: context.colors.secondaryText),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    ElevatedButton(
-                      onPressed: () async {
-                        if (nameController.text.trim().isNotEmpty) {
-                          try {
-                            await _playlistService.createPlaylist(
-                              name: nameController.text.trim(),
-                              description:
-                                  descriptionController.text.trim().isEmpty
-                                      ? 'Mi nueva playlist'
-                                      : descriptionController.text.trim(),
-                            );
-
-                            if (mounted) {
-                              Navigator.of(context).pop();
-                              print(
-                                  '🔄 Ejecutando callback onPlaylistsUpdated...');
-                              widget.onPlaylistsUpdated?.call();
-                            }
-                          } catch (e) {
-                            if (mounted) {
-                              print('❌ Error al crear playlist: $e');
-                            }
-                          }
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: context.primaryColor,
-                      ),
-                      child: Text(
-                        'Crear',
-                        style: TextStyle(color: context.colors.permanentWhite),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          TextButton(
+            child: const Text("Eliminar"),
+            onPressed: () => Navigator.pop(context, true),
           ),
-        );
-      },
+        ],
+      ),
     );
+
+    if (confirm == true) {
+      try {
+        await PlaylistService.instance.deletePlaylist(playlistId);
+        onPlaylistsUpdated?.call();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error al eliminar playlist: $e")),
+        );
+      }
+    }
   }
 
   @override
@@ -144,49 +57,94 @@ class _LibraryContentState extends State<LibraryContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Tu Biblioteca',
-            style: TextStyle(
-              color: context.colors.text,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 24),
-          GestureDetector(
-            onTap: _showCreatePlaylistDialog,
-            child: Container(
-              width: 150,
-              height: 150,
-              decoration: BoxDecoration(
-                color: context.colors.lightGray,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: context.colors.secondaryText.withOpacity(0.3),
-                  width: 1,
+          Row(
+            children: [
+              Text(
+                'Tu Biblioteca',
+                style: TextStyle(
+                  color: context.colors.text,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.add,
-                    size: 48,
-                    color: context.colors.secondaryText,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Añadir playlist',
-                    style: TextStyle(
-                      color: context.colors.secondaryText,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+              const SizedBox(width: 12),
+              GestureDetector(
+                onTap: () => onPlaylistsUpdated?.call(), // Podés abrir el diálogo desde otro lado si querés
+                child: Icon(
+                  Icons.add,
+                  size: 28,
+                  color: context.primaryColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          if (userPlaylists.isEmpty)
+            Text(
+              'Todavía no tenés playlists.',
+              style: TextStyle(
+                color: context.colors.secondaryText,
+                fontSize: 16,
+              ),
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: userPlaylists.length,
+              itemBuilder: (context, index) {
+                final playlist = userPlaylists[index];
+                return GestureDetector(
+                  onTap: () => onPlaylistTap?.call(playlist.id, playlist.name),
+                  child: Card(
+                    color: context.colors.lightGray,
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(12),
+                      leading: Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: context.colors.secondaryText.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Center(
+                          child: Text(
+                            playlist.name,
+                            style: TextStyle(
+                              color: context.colors.text,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        playlist.name,
+                        style: TextStyle(
+                          color: context.colors.text,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      subtitle: Text(
+                        '${playlist.songCount} canciones',
+                        style: TextStyle(
+                          color: context.colors.secondaryText,
+                          fontSize: 13,
+                        ),
+                      ),
+                      trailing: IconButton(
+                        icon: Icon(Icons.delete, color: context.colors.secondaryText),
+                        onPressed: () => _deletePlaylist(context, playlist.id),
+                      ),
                     ),
                   ),
-                ],
-              ),
+                );
+              },
             ),
-          ),
         ],
       ),
     );

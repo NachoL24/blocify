@@ -1,250 +1,195 @@
 import 'package:flutter/material.dart';
-import '../services/jellyfin_service.dart';
-import '../services/player_service.dart';
+import '../services/playlist_service.dart';
+import '../models/playlist_summary.dart';
 import '../theme/app_colors.dart';
-import '../widgets/main_layout.dart';
+import '../widgets/library_content.dart';
 
-class MusicLibraryScreen extends StatefulWidget {
-  const MusicLibraryScreen({super.key});
+class LibraryScreen extends StatefulWidget {
+  final String userId;
+
+  const LibraryScreen({super.key, required this.userId});
 
   @override
-  State<MusicLibraryScreen> createState() => _MusicLibraryScreenState();
+  State<LibraryScreen> createState() => _LibraryScreenState();
 }
 
-class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
-  List<JellyfinTrack>? _tracks;
+class _LibraryScreenState extends State<LibraryScreen> {
+  final PlaylistService _playlistService = PlaylistService.instance;
+  List<PlaylistSummary> _userPlaylists = [];
   bool _isLoading = true;
-  String? _errorMessage;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _loadTracks();
+    _loadUserPlaylists();
   }
 
-  Future<void> _loadTracks() async {
+  Future<void> _loadUserPlaylists() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
     try {
+      final playlists = await _playlistService.getUserPlaylists(widget.userId);
       setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
-
-      final tracks = await JellyfinService.getAllTracks();
-
-      setState(() {
-        _tracks = tracks;
+        _userPlaylists = playlists;
         _isLoading = false;
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Error al cargar las canciones: $e';
+        _error = 'Error al cargar playlists: $e';
         _isLoading = false;
       });
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return MainLayout(
-      child: Scaffold(
-        backgroundColor: context.colors.background,
-        appBar: AppBar(
+  Future<void> _createPlaylistDialog() async {
+    final nameController = TextEditingController();
+    final descriptionController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
           backgroundColor: context.colors.background,
-          elevation: 0,
-          title: Text(
-            'Biblioteca Musical',
-            style: TextStyle(
-              color: context.colors.text,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Crear Nueva Playlist',
+                  style: TextStyle(
+                    color: context.colors.text,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: nameController,
+                  style: TextStyle(color: context.colors.text),
+                  decoration: InputDecoration(
+                    labelText: 'Nombre de la playlist',
+                    labelStyle: TextStyle(color: context.colors.secondaryText),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.colors.lightGray),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.primaryColor),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: descriptionController,
+                  style: TextStyle(color: context.colors.text),
+                  decoration: InputDecoration(
+                    hintText: 'Descripción (opcional)',
+                    hintStyle: TextStyle(color: context.colors.secondaryText),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.colors.lightGray),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.primaryColor),
+                    ),
+                  ),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text('Cancelar', style: TextStyle(color: context.colors.secondaryText)),
+                    ),
+                    const SizedBox(width: 16),
+                    ElevatedButton(
+                      onPressed: () async {
+                        final name = nameController.text.trim();
+                        if (name.isEmpty) return;
+
+                        try {
+                          await _playlistService.createPlaylist(
+                            name: name,
+                            description: descriptionController.text.trim().isEmpty
+                                ? 'Mi nueva playlist'
+                                : descriptionController.text.trim(),
+                          );
+                          if (mounted) {
+                            Navigator.of(context).pop();
+                            _loadUserPlaylists();
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error al crear playlist: $e'), backgroundColor: Colors.red),
+                            );
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(backgroundColor: context.primaryColor),
+                      child: Text('Crear', style: TextStyle(color: context.colors.permanentWhite)),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.refresh, color: context.colors.text),
-              onPressed: _loadTracks,
-            ),
-          ],
-        ),
-        body: _buildBody(),
-      ),
-    );
-  }
-
-  Widget _buildBody() {
-    if (_isLoading) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(color: context.primaryColor),
-            const SizedBox(height: 16),
-            Text(
-              'Cargando canciones...',
-              style: TextStyle(color: context.colors.text),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (_errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: context.colors.text.withOpacity(0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _errorMessage!,
-              style: TextStyle(color: context.colors.text),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadTracks,
-              child: const Text('Reintentar'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (_tracks == null || _tracks!.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.music_off,
-              size: 64,
-              color: context.colors.text.withOpacity(0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No se encontraron canciones',
-              style: TextStyle(color: context.colors.text),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _tracks!.length,
-      itemBuilder: (context, index) {
-        final track = _tracks![index];
-        return _TrackTile(
-          track: track,
-          onTap: () => _playTrack(track, index),
         );
       },
     );
   }
 
-  Future<void> _playTrack(JellyfinTrack track, int index) async {
+  Future<void> _deletePlaylist(int playlistId) async {
     try {
-      final badBunnyTrack = _tracks!.firstWhere(
-        (t) => t.id == '5e8be675d5e30a4c8eb05bc4f43abafe',
-        orElse: () => _tracks!.isNotEmpty ? _tracks!.first : track,
-      );
-
-      await PlayerService.instance.playJellyfinTrack(
-        badBunnyTrack,
-        playlist: _tracks!,
-        index: _tracks!.indexOf(badBunnyTrack),
-      );
-
-      // Solo mostrar mini player, NO navegar automáticamente
-      PlayerService.instance.showMiniPlayer();
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Reproduciendo ${badBunnyTrack.name}'),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
+      await _playlistService.deletePlaylist(playlistId);
+      _loadUserPlaylists();
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al reproducir: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al eliminar playlist: $e'), backgroundColor: Colors.red),
+      );
     }
   }
-}
-
-class _TrackTile extends StatelessWidget {
-  final JellyfinTrack track;
-  final VoidCallback onTap;
-
-  const _TrackTile({
-    required this.track,
-    required this.onTap,
-  });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: context.colors.card1,
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: track.imageUrl != null
-              ? Image.network(
-                  track.imageUrl!,
-                  width: 56,
-                  height: 56,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _buildDefaultIcon(context),
-                )
-              : _buildDefaultIcon(context),
-        ),
+    return Scaffold(
+      backgroundColor: context.colors.background,
+      appBar: AppBar(
+        backgroundColor: context.colors.background,
+        elevation: 0,
+        centerTitle: true,
         title: Text(
-          track.name,
+          'Tu Biblioteca',
           style: TextStyle(
             color: context.colors.text,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
         ),
-        subtitle: Text(
-          track.primaryArtist,
-          style: TextStyle(
-            color: context.colors.text.withOpacity(0.7),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.add, color: context.colors.text),
+            onPressed: _createPlaylistDialog,
+            tooltip: 'Crear nueva playlist',
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: Icon(
-          Icons.play_arrow,
-          color: context.primaryColor,
-        ),
-        onTap: onTap,
+        ],
       ),
-    );
-  }
-
-  Widget _buildDefaultIcon(BuildContext context) {
-    return Container(
-      width: 56,
-      height: 56,
-      color: context.colors.lightGray,
-      child: Icon(
-        Icons.music_note,
-        color: context.colors.text.withOpacity(0.5),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+          ? Center(child: Text(_error!, style: TextStyle(color: context.colors.text)))
+          : LibraryContent(
+        userPlaylists: _userPlaylists,
+        isLoadingUserPlaylists: _isLoading,
+        onPlaylistsUpdated: _loadUserPlaylists,
+        onPlaylistTap: null,
       ),
     );
   }

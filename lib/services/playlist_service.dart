@@ -175,4 +175,33 @@ class PlaylistService {
       throw Exception('Error de conexión al cargar la playlist');
     }
   }
+
+  Future<void> deletePlaylist(int playlistId) async {
+    try {
+      final auth0Service = Auth0Service.instance;
+
+      if (!auth0Service.isAuthenticated ||
+          auth0Service.currentCredentials == null ||
+          auth0Service.currentUser == null) {
+        throw Exception('Usuario no autenticado');
+      }
+
+      print('🗑️ Eliminando playlist con ID: $playlistId');
+
+      final response =
+      await _httpService.delete('/api/playlists/$playlistId');
+
+      print('📱 Respuesta del servidor al eliminar:');
+      print('   - Status: ${response.statusCode}');
+      print('   - Body: ${response.body}');
+
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw Exception('Error al eliminar playlist: ${response.statusCode}');
+      }
+
+    } catch (e) {
+      print('❌ Error en deletePlaylist: $e');
+      throw Exception('Error al eliminar playlist: $e');
+    }
+  }
 }
