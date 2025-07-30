@@ -7,6 +7,7 @@ import '../widgets/custom_app_bar.dart';
 import '../widgets/home_content.dart';
 import '../widgets/library_content.dart';
 import '../widgets/main_layout.dart';
+import 'create_playlist_screen.dart';
 import 'login_screen.dart';
 import 'search_screen.dart';
 import 'playlist_detail_screen.dart';
@@ -366,6 +367,24 @@ class _MainScreenState extends State<MainScreen> {
       isLoadingUserPlaylists: _isLoadingUserPlaylists,
       onPlaylistTap: _navigateToPlaylist,
       onPlaylistsUpdated: _reloadUserPlaylistsEverywhere,
+      selectedFilter: "playlists",
+      onFilterSelected: (filter) {
+
+        if (filter == "playlists") {
+          _reloadUserPlaylistsEverywhere();
+        }
+        // TODO: Manejar el caso de "artists" si es necesario
+      },
+
+      onCreatePlaylist: () async {
+        final created = await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CreatePlaylistScreen()),
+        );
+        if (created == true) {
+          _reloadUserPlaylistsEverywhere();
+        }
+      },
     );
   }
 

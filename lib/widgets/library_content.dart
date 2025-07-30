@@ -1,3 +1,4 @@
+// widgets/library_content.dart
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../models/playlist_summary.dart';
@@ -9,6 +10,9 @@ class LibraryContent extends StatelessWidget {
   final VoidCallback? onPlaylistsUpdated;
   final void Function(int playlistId)? onDelete;
   final bool isLoadingUserPlaylists;
+  final VoidCallback? onCreatePlaylist; // Nuevo parámetro
+  final String selectedFilter;
+  final void Function(String filter)? onFilterSelected;
 
   const LibraryContent({
     super.key,
@@ -16,7 +20,10 @@ class LibraryContent extends StatelessWidget {
     this.onPlaylistTap,
     this.onPlaylistsUpdated,
     this.onDelete,
-    required this.isLoadingUserPlaylists,
+    this.isLoadingUserPlaylists = false,
+    this.onCreatePlaylist, // Añadido aquí
+    this.onFilterSelected,
+    required this.selectedFilter,
   });
 
   void _deletePlaylist(BuildContext context, int playlistId) async {
@@ -57,7 +64,9 @@ class LibraryContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          /// FILA: Título a la IZQUIERDA y Botón + a la DERECHA
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Tu Biblioteca',
@@ -67,18 +76,54 @@ class LibraryContent extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              IconButton(
+                icon: Icon(Icons.add, color: context.colors.text),
+                onPressed: onCreatePlaylist,
+                tooltip: 'Crear nueva playlist',
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          /// FILTROS: Playlists | Artists
+          Row(
+            children: [
+              TextButton(
+                onPressed: () => onFilterSelected?.call("playlists"),
+                child: Text(
+                  'Playlists',
+                  style: TextStyle(
+                    color: selectedFilter == "playlists"
+                        ? context.primaryColor
+                        : context.colors.text,
+                    fontWeight: selectedFilter == "playlists"
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                  ),
+                ),
+              ),
               const SizedBox(width: 12),
-              GestureDetector(
-                onTap: () => onPlaylistsUpdated?.call(), // Podés abrir el diálogo desde otro lado si querés
-                child: Icon(
-                  Icons.add,
-                  size: 28,
-                  color: context.primaryColor,
+              TextButton(
+                onPressed: () => onFilterSelected?.call("artists"),
+                child: Text(
+                  'Artists',
+                  style: TextStyle(
+                    color: selectedFilter == "artists"
+                        ? context.primaryColor
+                        : context.colors.text,
+                    fontWeight: selectedFilter == "artists"
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                  ),
                 ),
               ),
             ],
           ),
+
           const SizedBox(height: 24),
+
+          /// LISTADO DE PLAYLISTS
           if (userPlaylists.isEmpty)
             Text(
               'Todavía no tenés playlists.',
@@ -130,7 +175,7 @@ class LibraryContent extends StatelessWidget {
                         ),
                       ),
                       subtitle: Text(
-                        '${playlist.songCount} canciones',
+                        '${playlist.songCount} songs',
                         style: TextStyle(
                           color: context.colors.secondaryText,
                           fontSize: 13,
