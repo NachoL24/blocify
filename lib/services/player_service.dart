@@ -316,8 +316,10 @@ class PlayerService extends ChangeNotifier {
 
       debugPrint('🎵 Cola configurada con ${tracks.length} canciones, empezando en índice $startIndex');
 
-      // Eliminar la canción actual de la cola para evitar duplicados
-      _removeCurrentSongFromQueue();
+      // Solo eliminar la canción actual de la cola si el modo random está activado
+      if (_isRandomMode) {
+        _removeCurrentSongFromQueue();
+      }
 
       // Notificar antes de la operación asíncrona
       notifyListeners();
@@ -553,8 +555,10 @@ class PlayerService extends ChangeNotifier {
         throw Exception('No se encontraron canciones en la respuesta del backend');
       }
 
-      // Eliminar la canción actual de la cola para evitar duplicados
-      _removeCurrentSongFromQueue();
+      // Solo eliminar la canción actual de la cola si el modo random está activado
+      if (_isRandomMode) {
+        _removeCurrentSongFromQueue();
+      }
 
       // Notificar antes de la operación asíncrona
       notifyListeners();
@@ -672,12 +676,15 @@ class PlayerService extends ChangeNotifier {
     return null;
   }
 
-  // Regenerar la cola de reproducción cuando cambia el modo aleatorio
+  // Regenerar la cola de reproducción cuando cambia el modo aleatorio o de bloques
   Future<void> _regeneratePlaylistQueue() async {
     if (_currentPlaylistId == null || _currentTrack == null) return;
 
     try {
       debugPrint('🔀 Regenerando cola con random=$_isRandomMode, block=$_isBlockMode para playlist $_currentPlaylistId');
+
+      // Guardar la canción actual para encontrarla en la nueva cola
+      final currentSongId = _currentTrack!.id;
 
       // Obtener nueva cola del backend con el modo aleatorio y blocks actualizado
       final queueData = await PlaylistService.instance.getPlaylistReproductionQueue(
@@ -699,9 +706,20 @@ class PlayerService extends ChangeNotifier {
         if (newTracks.isNotEmpty) {
           _playlist = newTracks;
           _originalQueue = List.from(newTracks);
-          _currentTrackIndex = 0;
-          _currentTrack = newTracks[0];
-          debugPrint('🔀 Nueva cola generada con bloques: ${_blocks.length} bloques, primer bloque con ${newTracks.length} canciones');
+
+          // Buscar la canción actual en la nueva cola
+          int currentSongIndex = newTracks.indexWhere((track) => track.id == currentSongId);
+          if (currentSongIndex != -1) {
+            _currentTrackIndex = currentSongIndex;
+            _currentSongInBlockIndex = currentSongIndex;
+            _currentTrack = newTracks[currentSongIndex];
+          } else {
+            _currentTrackIndex = 0;
+            _currentSongInBlockIndex = 0;
+            _currentTrack = newTracks[0];
+          }
+
+          debugPrint('🔀 Nueva cola generada con bloques: ${_blocks.length} bloques, primer bloque con ${newTracks.length} canciones, canción actual en índice $_currentTrackIndex');
         }
       } else if (queueData['songs'] != null) {
         // Si no está en modo blocks, usar las canciones directamente
@@ -711,13 +729,29 @@ class PlayerService extends ChangeNotifier {
         if (newTracks.isNotEmpty) {
           _playlist = newTracks;
           _originalQueue = List.from(newTracks);
-          _currentTrackIndex = 0;
-          _currentTrack = newTracks[0];
-          debugPrint('🔀 Nueva cola generada con ${newTracks.length} canciones');
+
+          // Buscar la canción actual en la nueva cola
+          int currentSongIndex = newTracks.indexWhere((track) => track.id == currentSongId);
+          if (currentSongIndex != -1) {
+            _currentTrackIndex = currentSongIndex;
+            _currentTrack = newTracks[currentSongIndex];
+          } else {
+            _currentTrackIndex = 0;
+            _currentTrack = newTracks[0];
+          }
+
+          // Solo eliminar la canción actual de la cola si el modo random está activado
+          if (_isRandomMode) {
+            _removeCurrentSongFromQueue();
+          }
+
+          debugPrint('🔀 Nueva cola generada con ${newTracks.length} canciones, canción actual en índice $_currentTrackIndex');
         }
       } else {
         debugPrint('🔀 La nueva cola está vacía');
       }
+
+      notifyListeners();
     } catch (e) {
       debugPrint('❌ Error regenerando cola: $e');
     }
