@@ -37,7 +37,7 @@ class Song {
       albumId: json['albumId'],
       duration: json['duration'],
       id: json['id'].toString(),
-      picture: json['picture'],
+      picture: json['imageUrl'],
       albumPrimaryImageTag: json['albumPrimaryImageTag'],
       container: json['container'],
     );
