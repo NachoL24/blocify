@@ -20,7 +20,7 @@ class AppColors {
   static const Color darkPrimary = Color(0xFF8A13B2);
   static const Color darkPlaceholder = Color(0xB3FFFFFF);
   static const Color darkDrawer = Color(0x1A8C8C8C);
-  static const Color darkCard1 = Color(0x80323232);
+  static const Color darkCard1 = Color(0xFF323232);
   static const Color darkSecondaryText = Color(0xFFAD96C2);
 
   static Color primary = lightPrimary;
@@ -47,7 +47,7 @@ class AppColors {
     primary: darkPrimary,
     placeholder: darkPlaceholder,
     drawer: darkDrawer,
-    card1: darkCard1,
+    card1: Color.fromARGB(255, 27, 27, 27),
     secondaryText: darkSecondaryText,
   );
 }

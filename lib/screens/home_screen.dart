@@ -1,184 +1,309 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../services/auth0_service.dart';
+import '../services/player_service.dart';
+import '../widgets/main_layout.dart';
+import 'login_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final String username;
-  
+
   const HomeScreen({super.key, required this.username});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final Auth0Service _auth0Service = Auth0Service.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _auth0Service.addListener(_onAuthStateChanged);
+  }
+
+  @override
+  void dispose() {
+    _auth0Service.removeListener(_onAuthStateChanged);
+    super.dispose();
+  }
+
+  void _onAuthStateChanged() {
+    if (!_auth0Service.isAuthenticated && mounted) {
+      // Si el usuario ya no está autenticado, navegar al login
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        (route) => false,
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.colors.background,
-      appBar: AppBar(
+    return MainLayout(
+      child: Scaffold(
         backgroundColor: context.colors.background,
-        elevation: 0,
-        title: Row(
-          children: [
-            Icon(
-              Icons.music_note_rounded,
-              color: context.primaryColor,
-              size: 28,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Blocify',
-              style: TextStyle(
-                color: context.colors.text,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
+        appBar: AppBar(
+          backgroundColor: context.colors.background,
+          elevation: 0,
+          title: Row(
+            children: [
+              Icon(
+                Icons.music_note_rounded,
+                color: context.primaryColor,
+                size: 28,
               ),
+              const SizedBox(width: 8),
+              Text(
+                'Blocify',
+                style: TextStyle(
+                  color: context.colors.text,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.settings, color: context.colors.text),
+              onPressed: () {
+                Navigator.pushNamed(context, '/settings');
+              },
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.person, color: context.colors.text),
-            onPressed: () {
-            },
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Hola, $username!',
-              style: TextStyle(
-                color: context.colors.text,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            
-            const SizedBox(height: 8),
-            
-            Text(
-              '¿Qué quieres escuchar hoy?',
-              style: TextStyle(
-                color: context.colors.secondaryText,
-                fontSize: 16,
-              ),
-            ),
-            
-            const SizedBox(height: 32),
-            
-            Text(
-              'Acceso rápido',
-              style: TextStyle(
-                color: context.colors.text,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            Row(
-              children: [
-                Expanded(
-                  child: _QuickActionCard(
-                    icon: Icons.favorite,
-                    title: 'Me Gusta',
-                    subtitle: 'Tus canciones favoritas',
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Función en desarrollo')),
-                      );
-                    },
-                  ),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Hola, ${widget.username}!',
+                style: TextStyle(
+                  color: context.colors.text,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _QuickActionCard(
-                    icon: Icons.history,
-                    title: 'Recientes',
-                    subtitle: 'Reproducidas recientemente',
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Función en desarrollo')),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 32),
-            
-            const Text(
-              'Tus Playlists',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
               ),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            Expanded(
-              child: ListView(
+
+              const SizedBox(height: 8),
+
+              Text(
+                '¿Qué quieres escuchar hoy?',
+                style: TextStyle(
+                  color: context.colors.secondaryText,
+                  fontSize: 16,
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              Text(
+                'Acceso rápido',
+                style: TextStyle(
+                  color: context.colors.text,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              Row(
                 children: [
-                  _PlaylistTile(
-                    title: 'Mi Playlist #1',
-                    subtitle: '12 canciones',
-                    icon: Icons.queue_music,
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Abriendo playlist...')),
-                      );
-                    },
+                  Expanded(
+                    child: _QuickActionCard(
+                      icon: Icons.favorite,
+                      title: 'Me Gusta',
+                      subtitle: 'Tus canciones favoritas',
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Función en desarrollo')),
+                        );
+                      },
+                    ),
                   ),
-                  _PlaylistTile(
-                    title: 'Favoritos Rock',
-                    subtitle: '8 canciones',
-                    icon: Icons.music_note,
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Abriendo playlist...')),
-                      );
-                    },
-                  ),
-                  _PlaylistTile(
-                    title: 'Crear nueva playlist',
-                    subtitle: 'Toca para crear',
-                    icon: Icons.add,
-                    isCreate: true,
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Función en desarrollo')),
-                      );
-                    },
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _QuickActionCard(
+                      icon: Icons.history,
+                      title: 'Recientes',
+                      subtitle: 'Reproducidas recientemente',
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Función en desarrollo')),
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
+
+              const SizedBox(width: 12),
+
+              // Botón para reproducir canción de prueba
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.symmetric(vertical: 16),
+                child: ElevatedButton.icon(
+                  onPressed: () => _playTestSong(),
+                  icon: const Icon(Icons.play_arrow),
+                  label: const Text('Reproducir desde Jellyfin'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: context.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.all(16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Botón para ir al reproductor
+              Container(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.pushNamed(context, '/player'),
+                  icon: const Icon(Icons.music_note),
+                  label: const Text('Ir al Reproductor'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: context.primaryColor,
+                    side: BorderSide(color: context.primaryColor),
+                    padding: const EdgeInsets.all(16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Botón para ir a la biblioteca
+              Container(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.pushNamed(context, '/library'),
+                  icon: const Icon(Icons.library_music),
+                  label: const Text('Ver Biblioteca Musical'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: context.primaryColor,
+                    side: BorderSide(color: context.primaryColor),
+                    padding: const EdgeInsets.all(16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              const Text(
+                'Tus Playlists',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              Expanded(
+                child: ListView(
+                  children: [
+                    _PlaylistTile(
+                      title: 'Mi Playlist #1',
+                      subtitle: '12 canciones',
+                      icon: Icons.queue_music,
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Abriendo playlist...')),
+                        );
+                      },
+                    ),
+                    _PlaylistTile(
+                      title: 'Favoritos Rock',
+                      subtitle: '8 canciones',
+                      icon: Icons.music_note,
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Abriendo playlist...')),
+                        );
+                      },
+                    ),
+                    _PlaylistTile(
+                      title: 'Crear nueva playlist',
+                      subtitle: 'Toca para crear',
+                      icon: Icons.add,
+                      isCreate: true,
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Función en desarrollo')),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          backgroundColor: context.colors.drawer,
+          selectedItemColor: context.primaryColor,
+          unselectedItemColor: context.colors.secondaryText,
+          type: BottomNavigationBarType.fixed,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Inicio',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.search),
+              label: 'Buscar',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.library_music),
+              label: 'Biblioteca',
             ),
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: context.colors.drawer,
-        selectedItemColor: context.primaryColor,
-        unselectedItemColor: context.colors.secondaryText,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Inicio',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Buscar',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.library_music),
-            label: 'Biblioteca',
-          ),
-        ],
-      ),
+    );
+  }
+
+  void _playTestSong() async {
+    try {
+      // Intentar cargar desde Jellyfin
+      final tracks = await PlayerService.instance.loadJellyfinTracks();
+      if (tracks.isNotEmpty) {
+        await PlayerService.instance
+            .playJellyfinTrack(tracks.first, playlist: tracks);
+        return;
+      }
+    } catch (e) {
+      debugPrint('Error loading from Jellyfin: $e');
+    }
+
+    // Fallback a canción de prueba
+    const audioUrl =
+        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
+    const songImageUrl =
+        'https://via.placeholder.com/240x240/8A13B2/FFFFFF?text=Blocify';
+
+    PlayerService.instance.playSong(
+      audioUrl: audioUrl,
+      songTitle: 'SoundHelix Song 1',
+      artist: 'SoundHelix',
+      albumArt: songImageUrl,
     );
   }
 }
