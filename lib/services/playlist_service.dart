@@ -1,15 +1,22 @@
 import 'dart:convert';
-import 'package:blocify/services/http_service.dart';
+import 'package:http/http.dart' as http;
+import '../services/http_service.dart';
 import '../models/playlist.dart';
 import '../models/playlist_summary.dart';
 import '../services/auth0_service.dart';
+import '../config/backend_config.dart';
 
 class PlaylistService {
   static final PlaylistService instance = PlaylistService._internal();
+  final HttpService _httpService = HttpService();
+
   factory PlaylistService() => instance;
   PlaylistService._internal();
 
-  final HttpService _httpService = HttpService();
+  // Método configure actualizado para usar BackendConfig
+  void configure() {
+    print('PlaylistService configurado usando BackendConfig.baseUrl');
+  }
 
   Future<Map<String, dynamic>?> createPlaylist({
     required String name,
@@ -79,8 +86,7 @@ class PlaylistService {
       print('   - Name: $name');
       print('   - Description: $description');
 
-      final response =
-          await _httpService.patch('/api/playlists/$playlistId', body: body);
+      final response = await _httpService.patch('/api/playlists/$playlistId', body: body);
 
       print('📱 Respuesta del servidor:');
       print('   - Status: ${response.statusCode}');
@@ -188,8 +194,7 @@ class PlaylistService {
 
       print('🗑️ Eliminando playlist con ID: $playlistId');
 
-      final response =
-      await _httpService.delete('/api/playlists/$playlistId');
+      final response = await _httpService.delete('/api/playlists/$playlistId');
 
       print('📱 Respuesta del servidor al eliminar:');
       print('   - Status: ${response.statusCode}');

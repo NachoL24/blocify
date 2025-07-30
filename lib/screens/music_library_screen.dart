@@ -1,37 +1,47 @@
-// screens/music_library_screen.dart
 import 'package:flutter/material.dart';
 import '../services/playlist_service.dart';
+import '../services/artist_service.dart';
 import '../models/playlist_summary.dart';
+import '../models/artist.dart';
 import '../theme/app_colors.dart';
 import '../widgets/library_content.dart';
 import 'create_playlist_screen.dart';
 
-class LibraryScreen extends StatefulWidget {
+class MusicLibraryScreen extends StatefulWidget {
   final String userId;
+  final String apiKey;
 
-  const LibraryScreen({super.key, required this.userId});
+  const MusicLibraryScreen({
+    super.key,
+    required this.userId,
+    required this.apiKey,
+  });
 
   @override
-  State<LibraryScreen> createState() => _LibraryScreenState();
+  State<MusicLibraryScreen> createState() => _MusicLibraryScreenState();
 }
 
-class _LibraryScreenState extends State<LibraryScreen> {
+class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
   final PlaylistService _playlistService = PlaylistService.instance;
+  final ArtistService _artistService = ArtistService();
 
   List<PlaylistSummary> _userPlaylists = [];
-  bool _isLoading = true;
+  List<ArtistSummary>? _userArtists;
+  bool _isLoadingPlaylists = true;
+  bool _isLoadingArtists = false;
   String? _error;
   String _selectedFilter = "playlists";
 
   @override
   void initState() {
     super.initState();
+    _artistService.configure(widget.apiKey);
     _loadUserPlaylists();
   }
 
   Future<void> _loadUserPlaylists() async {
     setState(() {
-      _isLoading = true;
+      _isLoadingPlaylists = true;
       _error = null;
     });
 
@@ -39,13 +49,59 @@ class _LibraryScreenState extends State<LibraryScreen> {
       final playlists = await _playlistService.getUserPlaylists(widget.userId);
       setState(() {
         _userPlaylists = playlists;
-        _isLoading = false;
+        _isLoadingPlaylists = false;
       });
     } catch (e) {
       setState(() {
         _error = 'Error al cargar playlists: $e';
-        _isLoading = false;
+        _isLoadingPlaylists = false;
       });
+    }
+  }
+
+  Future<void> _loadUserArtists() async {
+    if (_userArtists != null && _selectedFilter != 'artists') return;
+
+    setState(() {
+      _isLoadingArtists = true;
+      _error = null;
+    });
+
+    try {
+      final artists = await _artistService.getUserArtists();
+      setState(() {
+        _userArtists = artists;
+        _isLoadingArtists = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'Error al cargar artistas: $e';
+        _isLoadingArtists = false;
+      });
+    }
+  }
+
+  Future<void> _deletePlaylist(int playlistId) async {
+    try {
+      await _playlistService.deletePlaylist(playlistId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Playlist eliminada correctamente'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+        _loadUserPlaylists(); // Recargar la lista de playlists
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al eliminar playlist: $e'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 
@@ -54,7 +110,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       context,
       MaterialPageRoute(builder: (context) => const CreatePlaylistScreen()),
     );
-    if (created == true) {
+    if (created == true && mounted) {
       _loadUserPlaylists();
     }
   }
@@ -63,10 +119,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
     setState(() {
       _selectedFilter = filter;
     });
+
     if (filter == "playlists") {
       _loadUserPlaylists();
     } else if (filter == "artists") {
-      // TODO: cargar artistas cuando tengas el service
+      _loadUserArtists();
     }
   }
 
@@ -74,18 +131,31 @@ class _LibraryScreenState extends State<LibraryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.colors.background,
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? Center(child: Text(_error!, style: TextStyle(color: context.colors.text)))
-          : LibraryContent(
-        userPlaylists: _userPlaylists,
-        isLoadingUserPlaylists: _isLoading,
-        onPlaylistsUpdated: _loadUserPlaylists,
-        onPlaylistTap: null,
-        onCreatePlaylist: _navigateToCreatePlaylist, // Pasamos el callback
-        selectedFilter: _selectedFilter,
-        onFilterSelected: _onFilterSelected,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          if (_selectedFilter == "playlists") {
+            await _loadUserPlaylists();
+          } else {
+            await _loadUserArtists();
+          }
+        },
+        child: LibraryContent(
+          userPlaylists: _userPlaylists,
+          userArtists: _userArtists,
+          isLoadingUserPlaylists: _isLoadingPlaylists,
+          isLoadingUserArtists: _isLoadingArtists,
+          onPlaylistsUpdated: _loadUserPlaylists,
+          onPlaylistTap: (id, name) {
+            // Navegación a playlist
+          },
+          onDelete: (playlistId) async { // Callback directo para eliminar
+            await _deletePlaylist(playlistId);
+          },
+          onCreatePlaylist: _navigateToCreatePlaylist,
+          selectedFilter: _selectedFilter,
+          onFilterSelected: _onFilterSelected,
+          error: _error,
+        ),
       ),
     );
   }
