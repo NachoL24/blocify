@@ -374,7 +374,7 @@ class _PlayerPageState extends State<PlayerPage> {
                                     color: context.colors.surface,
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: Colors.white.withOpacity(0.3),
+                                      color: context.colors.text.withOpacity(0.3),
                                       width: 1,
                                     ),
                                   ),
@@ -384,9 +384,9 @@ class _PlayerPageState extends State<PlayerPage> {
                                       // Botón bloque anterior
                                       IconButton(
                                         iconSize: 24,
-                                        icon: const Icon(
+                                        icon: Icon(
                                           Icons.skip_previous,
-                                          color: Colors.white,
+                                          color: context.colors.text,
                                         ),
                                         onPressed: _playerService.previousBlock,
                                         tooltip: 'Bloque anterior',
@@ -396,22 +396,22 @@ class _PlayerPageState extends State<PlayerPage> {
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                         decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.1),
+                                          color: context.colors.text.withOpacity(0.1),
                                           borderRadius: BorderRadius.circular(16),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            const Icon(
+                                            Icon(
                                               Icons.view_module,
                                               size: 16,
-                                              color: Colors.white,
+                                              color: context.colors.text,
                                             ),
                                             const SizedBox(width: 4),
                                             Text(
                                               _playerService.currentBlockName ?? 'Bloques',
-                                              style: const TextStyle(
-                                                color: Colors.white,
+                                              style: TextStyle(
+                                                color: context.colors.text,
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w600,
                                               ),
@@ -423,9 +423,9 @@ class _PlayerPageState extends State<PlayerPage> {
                                       // Botón bloque siguiente
                                       IconButton(
                                         iconSize: 24,
-                                        icon: const Icon(
+                                        icon: Icon(
                                           Icons.skip_next,
-                                          color: Colors.white,
+                                          color: context.colors.text,
                                         ),
                                         onPressed: _playerService.nextBlock,
                                         tooltip: 'Bloque siguiente',
