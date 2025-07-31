@@ -175,7 +175,7 @@ class _PlayerPageState extends State<PlayerPage> {
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
 
                       // Song Info
                       Column(
@@ -202,29 +202,6 @@ class _PlayerPageState extends State<PlayerPage> {
                               ),
                               textAlign: TextAlign.center,
                             ),
-                          // Mostrar nombre del bloque actual si está en modo blocks
-                          if (_playerService.isBlockMode && _playerService.currentBlockName != null) ...[
-                            const SizedBox(height: 4),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: context.colors.primary.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: context.colors.primary.withOpacity(0.3),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Text(
-                                'Bloque: ${_playerService.currentBlockName}',
-                                style: TextStyle(
-                                  color: context.colors.primary,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
                         ],
                       ),
 
