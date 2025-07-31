@@ -198,6 +198,13 @@ class PlayerService extends ChangeNotifier {
 
     if (hasPrevious) {
       _currentTrackIndex--;
+
+      // Si estamos en modo blocks, también actualizar el índice del bloque
+      if (_isBlockMode && _blocks.isNotEmpty) {
+        _currentSongInBlockIndex--;
+        debugPrint('🔲 Retrocediendo en el bloque: nueva posición $_currentSongInBlockIndex');
+      }
+
       final previousTrack = _playlist[_currentTrackIndex];
       _currentTrack = previousTrack;
       _isPlayerVisible = true;
