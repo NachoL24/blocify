@@ -56,8 +56,62 @@ class PlayerService extends ChangeNotifier {
   bool get hasSong => _currentTrack != null;
   List<JellyfinTrack> get playlist => _playlist;
   int get currentTrackIndex => _currentTrackIndex;
-  bool get hasNext => _currentTrackIndex < _playlist.length - 1;
-  bool get hasPrevious => _currentTrackIndex > 0;
+  bool get hasNext {
+    if (_isBlockMode && _blocks.isNotEmpty) {
+      // En modo blocks, considerar los estados de loop
+      switch (_loopMode) {
+        case 0: // Desactivado - solo permitir siguiente si hay más canciones en el bloque o hay siguiente bloque
+          return _currentTrackIndex < _playlist.length - 1 || hasNextBlock;
+        case 1: // Loop lista completa
+          return true; // Siempre hay siguiente (puede ser siguiente bloque o reiniciar)
+        case 2: // Loop bloque actual
+          return true; // Siempre hay siguiente dentro del bloque (circular)
+        default:
+          return _currentTrackIndex < _playlist.length - 1 || hasNextBlock;
+      }
+    } else {
+      // En modo playlist normal
+      switch (_loopMode) {
+        case 0: // Desactivado - solo permitir siguiente si hay más canciones
+          return _currentTrackIndex < _playlist.length - 1;
+        case 1: // Loop playlist completa
+          return true; // Siempre hay siguiente (circular)
+        case 2: // Loop canción actual
+          return true; // Siempre hay siguiente (circular en playlist)
+        default:
+          return _currentTrackIndex < _playlist.length - 1;
+      }
+    }
+  }
+
+  bool get hasPrevious {
+    if (_isBlockMode && _blocks.isNotEmpty) {
+      // En modo blocks, considerar los estados de loop
+      switch (_loopMode) {
+        case 0: // Desactivado - solo permitir anterior si hay canciones anteriores en el bloque o hay bloque anterior
+          return _currentTrackIndex > 0 || hasPreviousBlock;
+        case 1: // Loop lista completa
+          return true; // Siempre hay anterior (puede ser bloque anterior o ir al final)
+        case 2: // Loop bloque actual
+          return true; // Siempre hay anterior dentro del bloque (circular)
+        default:
+          return _currentTrackIndex > 0 || hasPreviousBlock;
+      }
+    } else {
+      // En modo playlist normal
+      switch (_loopMode) {
+        case 0: // Desactivado - solo permitir anterior si hay canciones anteriores
+          return _currentTrackIndex > 0;
+        case 1: // Loop playlist completa
+          return true; // Siempre hay anterior (circular)
+        case 2: // Loop canción actual
+          return true; // Siempre hay anterior (circular en playlist)
+        default:
+          return _currentTrackIndex > 0;
+      }
+    }
+  }
+
   bool get isRandomMode => _isRandomMode;
   bool get isBlockMode => _isBlockMode;
   int? get currentPlaylistId => _currentPlaylistId;
@@ -135,93 +189,284 @@ class PlayerService extends ChangeNotifier {
   }
 
   Future<void> playNext() async {
-    debugPrint('🎵 playNext() called');
+    debugPrint('🎵 playNext() called - Loop mode: $_loopMode');
 
     if (_isBlockMode && _blocks.isNotEmpty) {
-      // Si estamos en modo blocks, manejar la navegación entre bloques
-      if (_currentSongInBlockIndex < _playlist.length - 1) {
-        // Hay más canciones en el bloque actual
-        _currentSongInBlockIndex++;
-        _currentTrackIndex++;
-        final nextTrack = _playlist[_currentTrackIndex];
-        _currentTrack = nextTrack;
+      // Modo blocks
+      switch (_loopMode) {
+        case 1: // Loop lista completa
+          if (_currentSongInBlockIndex < _playlist.length - 1) {
+            // Hay más canciones en el bloque actual
+            _currentSongInBlockIndex++;
+            _currentTrackIndex++;
+            final nextTrack = _playlist[_currentTrackIndex];
+            _currentTrack = nextTrack;
+            debugPrint('🔲 Siguiente canción en el bloque: ${nextTrack.name}');
 
-        debugPrint('🔲 Siguiente canción en el bloque: ${nextTrack.name}');
+            notifyListeners();
+            await _player.setUrl(nextTrack.streamUrl);
+            await _player.play();
+            notifyListeners();
+          } else if (hasNextBlock) {
+            // Pasar al siguiente bloque
+            await _moveToNextBlock();
+          } else {
+            // No hay más bloques, volver al primer bloque
+            debugPrint('🔁 Último bloque completado - volviendo al primer bloque');
+            _currentBlockIndex = 0;
+            await _loadCurrentBlock();
+          }
+          break;
 
-        notifyListeners();
+        case 2: // Loop bloque actual
+          if (_currentSongInBlockIndex < _playlist.length - 1) {
+            // Siguiente canción en el bloque
+            _currentSongInBlockIndex++;
+            _currentTrackIndex++;
+          } else {
+            // Última canción del bloque, reiniciar solo los índices de canción (NO cambiar bloque)
+            _currentSongInBlockIndex = 0;
+            _currentTrackIndex = 0;
+            // Restaurar la cola original del bloque actual sin cambiar el bloque
+            _playlist = List.from(_originalQueue);
+            debugPrint('🔁 Última canción del bloque - reiniciando índices dentro del mismo bloque');
+          }
 
-        try {
+          final nextTrack = _playlist[_currentTrackIndex];
+          _currentTrack = nextTrack;
+          debugPrint('🔲 Siguiente en bloque (loop): ${nextTrack.name}');
+
+          notifyListeners();
           await _player.setUrl(nextTrack.streamUrl);
           await _player.play();
           notifyListeners();
-        } catch (e) {
-          debugPrint('Error playing next track: $e');
-        }
-      } else if (hasNextBlock) {
-        // Pasar al siguiente bloque
-        await _moveToNextBlock();
-      } else {
-        debugPrint('🔲 No hay más bloques disponibles');
+          break;
+
+        default:
+          // Estados 0 y 3 - comportamiento normal
+          if (_currentSongInBlockIndex < _playlist.length - 1) {
+            _currentSongInBlockIndex++;
+            _currentTrackIndex++;
+            final nextTrack = _playlist[_currentTrackIndex];
+            _currentTrack = nextTrack;
+            debugPrint('🔲 Siguiente canción en el bloque: ${nextTrack.name}');
+
+            notifyListeners();
+            await _player.setUrl(nextTrack.streamUrl);
+            await _player.play();
+            notifyListeners();
+          } else if (hasNextBlock) {
+            await _moveToNextBlock();
+          } else {
+            debugPrint('🔲 No hay más bloques disponibles');
+          }
       }
     } else {
-      // Comportamiento normal sin bloques
-      if (hasNext) {
-        _currentTrackIndex++;
-        final nextTrack = _playlist[_currentTrackIndex];
-        _currentTrack = nextTrack;
-        _isPlayerVisible = true;
+      // Modo playlist normal
+      switch (_loopMode) {
+        case 1: // Loop playlist completa
+          if (_currentTrackIndex < _playlist.length - 1) {
+            // Siguiente canción normal
+            _currentTrackIndex++;
+          } else {
+            // Última canción, volver al inicio
+            _currentTrackIndex = 0;
+            debugPrint('🔁 Playlist completada - volviendo al inicio');
+          }
 
-        debugPrint('🎵 Moving to next track: ${nextTrack.name}');
+          final nextTrack = _playlist[_currentTrackIndex];
+          _currentTrack = nextTrack;
+          debugPrint('🎵 Siguiente en playlist (loop): ${nextTrack.name}');
 
-        if (_currentPlaylistId != null) {
-          _removeCurrentSongFromQueue();
-        }
+          if (_currentPlaylistId != null && _isRandomMode) {
+            _removeCurrentSongFromQueue();
+          }
 
-        notifyListeners();
-
-        try {
+          notifyListeners();
           await _player.setUrl(nextTrack.streamUrl);
           await _player.play();
           notifyListeners();
-        } catch (e) {
-          debugPrint('Error playing next track: $e');
-        }
-      } else {
-        debugPrint('🎵 No next track available');
+          break;
+
+        case 2: // Loop canción actual (modo playlist) - ahora permite navegar circularmente
+          if (_currentTrackIndex < _playlist.length - 1) {
+            // Siguiente canción normal
+            _currentTrackIndex++;
+          } else {
+            // Última canción, volver al inicio
+            _currentTrackIndex = 0;
+            debugPrint('🔁 Playlist completada - volviendo al inicio (loop canción)');
+          }
+
+          final nextTrack = _playlist[_currentTrackIndex];
+          _currentTrack = nextTrack;
+          debugPrint('🎵 Siguiente en playlist (loop circular): ${nextTrack.name}');
+
+          if (_currentPlaylistId != null && _isRandomMode) {
+            _removeCurrentSongFromQueue();
+          }
+
+          notifyListeners();
+          await _player.setUrl(nextTrack.streamUrl);
+          await _player.play();
+          notifyListeners();
+          break;
+
+        default:
+          // Estado 0 - comportamiento normal
+          if (_currentTrackIndex < _playlist.length - 1) {
+            _currentTrackIndex++;
+            final nextTrack = _playlist[_currentTrackIndex];
+            _currentTrack = nextTrack;
+            debugPrint('🎵 Siguiente canción: ${nextTrack.name}');
+
+            if (_currentPlaylistId != null && _isRandomMode) {
+              _removeCurrentSongFromQueue();
+            }
+
+            notifyListeners();
+            await _player.setUrl(nextTrack.streamUrl);
+            await _player.play();
+            notifyListeners();
+          } else {
+            debugPrint('🎵 No hay siguiente canción disponible');
+          }
       }
     }
   }
 
   Future<void> playPrevious() async {
-    debugPrint('🎵 playPrevious() called');
+    debugPrint('🎵 playPrevious() called - Loop mode: $_loopMode');
     logPlaylistState();
 
-    if (hasPrevious) {
-      _currentTrackIndex--;
+    if (_isBlockMode && _blocks.isNotEmpty) {
+      // Modo blocks
+      switch (_loopMode) {
+        case 1: // Loop lista completa
+          if (_currentSongInBlockIndex > 0) {
+            // Hay canciones anteriores en el bloque actual
+            _currentSongInBlockIndex--;
+            _currentTrackIndex--;
+            final previousTrack = _playlist[_currentTrackIndex];
+            _currentTrack = previousTrack;
+            debugPrint('🔲 Canción anterior en el bloque: ${previousTrack.name}');
 
-      // Si estamos en modo blocks, también actualizar el índice del bloque
-      if (_isBlockMode && _blocks.isNotEmpty) {
-        _currentSongInBlockIndex--;
-        debugPrint('🔲 Retrocediendo en el bloque: nueva posición $_currentSongInBlockIndex');
-      }
+            notifyListeners();
+            await _player.setUrl(previousTrack.streamUrl);
+            await _player.play();
+            notifyListeners();
+          } else if (hasPreviousBlock) {
+            // Ir al bloque anterior y posicionarse en la última canción
+            await _moveToPreviousBlock();
+          } else {
+            // No hay bloque anterior, ir al último bloque, última canción
+            debugPrint('🔁 Primer bloque - yendo al último bloque');
+            _currentBlockIndex = _blocks.length - 1;
+            await _loadCurrentBlockAtEnd();
+          }
+          break;
 
-      final previousTrack = _playlist[_currentTrackIndex];
-      _currentTrack = previousTrack;
-      _isPlayerVisible = true;
+        case 2: // Loop bloque actual
+          if (_currentSongInBlockIndex > 0) {
+            // Canción anterior en el bloque
+            _currentSongInBlockIndex--;
+            _currentTrackIndex--;
+          } else {
+            // Primera canción del bloque, ir a la última canción (circular)
+            _playlist = List.from(_originalQueue);
+            _currentSongInBlockIndex = _playlist.length - 1;
+            _currentTrackIndex = _playlist.length - 1;
+            debugPrint('🔁 Primera canción del bloque - yendo a la última canción');
+          }
 
-      debugPrint('🎵 Moving to previous track: ${previousTrack.name}');
-      notifyListeners(); // Notificar antes de la operación asíncrona
+          final previousTrack = _playlist[_currentTrackIndex];
+          _currentTrack = previousTrack;
+          debugPrint('🔲 Anterior en bloque (loop): ${previousTrack.name}');
 
-      try {
-        await _player.setUrl(previousTrack.streamUrl);
-        await _player.play();
-        notifyListeners(); // Notificar después también
-        logPlaylistState();
-      } catch (e) {
-        debugPrint('Error playing previous track: $e');
+          notifyListeners();
+          await _player.setUrl(previousTrack.streamUrl);
+          await _player.play();
+          notifyListeners();
+          break;
+
+        default:
+          // Estados 0 y 3 - comportamiento normal
+          if (_currentSongInBlockIndex > 0) {
+            _currentSongInBlockIndex--;
+            _currentTrackIndex--;
+            final previousTrack = _playlist[_currentTrackIndex];
+            _currentTrack = previousTrack;
+            debugPrint('🔲 Canción anterior en el bloque: ${previousTrack.name}');
+
+            notifyListeners();
+            await _player.setUrl(previousTrack.streamUrl);
+            await _player.play();
+            notifyListeners();
+          } else if (hasPreviousBlock) {
+            await _moveToPreviousBlock();
+          } else {
+            debugPrint('🔲 No hay bloque anterior disponible');
+          }
       }
     } else {
-      debugPrint('🎵 No previous track available');
+      // Modo playlist normal
+      switch (_loopMode) {
+        case 1: // Loop playlist completa
+          if (_currentTrackIndex > 0) {
+            // Canción anterior normal
+            _currentTrackIndex--;
+          } else {
+            // Primera canción, ir a la última
+            _currentTrackIndex = _playlist.length - 1;
+            debugPrint('🔁 Primera canción - yendo a la última');
+          }
+
+          final previousTrack = _playlist[_currentTrackIndex];
+          _currentTrack = previousTrack;
+          debugPrint('🎵 Anterior en playlist (loop): ${previousTrack.name}');
+
+          notifyListeners();
+          await _player.setUrl(previousTrack.streamUrl);
+          await _player.play();
+          notifyListeners();
+          break;
+
+        case 2: // Loop canción actual (modo playlist) - ahora permite navegar circularmente
+          if (_currentTrackIndex > 0) {
+            // Canción anterior normal
+            _currentTrackIndex--;
+          } else {
+            // Primera canción, ir a la última
+            _currentTrackIndex = _playlist.length - 1;
+            debugPrint('🔁 Primera canción - yendo a la última (loop canción)');
+          }
+
+          final previousTrack = _playlist[_currentTrackIndex];
+          _currentTrack = previousTrack;
+          debugPrint('🎵 Anterior en playlist (loop circular): ${previousTrack.name}');
+
+          notifyListeners();
+          await _player.setUrl(previousTrack.streamUrl);
+          await _player.play();
+          notifyListeners();
+          break;
+
+        default:
+          // Estado 0 - comportamiento normal
+          if (_currentTrackIndex > 0) {
+            _currentTrackIndex--;
+            final previousTrack = _playlist[_currentTrackIndex];
+            _currentTrack = previousTrack;
+            debugPrint('🎵 Canción anterior: ${previousTrack.name}');
+
+            notifyListeners();
+            await _player.setUrl(previousTrack.streamUrl);
+            await _player.play();
+            notifyListeners();
+          } else {
+            debugPrint('🎵 No hay canción anterior disponible');
+          }
+      }
     }
   }
 
@@ -928,6 +1173,63 @@ class PlayerService extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint('❌ Error cargando bloque actual: $e');
+    }
+  }
+
+  // Método auxiliar para cargar el bloque actual pero en la última canción
+  Future<void> _loadCurrentBlockAtEnd() async {
+    try {
+      final currentBlock = _blocks[_currentBlockIndex];
+      final songs = currentBlock['songs'] as List<dynamic>;
+      final tracks = songs.map((songJson) => _songToJellyfinTrack(songJson)).toList();
+
+      if (tracks.isNotEmpty) {
+        _playlist = tracks;
+        _currentTrackIndex = tracks.length - 1;
+        _currentSongInBlockIndex = tracks.length - 1;
+        _currentTrack = tracks.last;
+
+        debugPrint('🔲 Cargando bloque ${currentBlock['name']} al final con ${tracks.length} canciones');
+
+        notifyListeners();
+
+        await _player.setUrl(_currentTrack!.streamUrl);
+        await _player.play();
+
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('❌ Error cargando bloque actual al final: $e');
+    }
+  }
+
+  // Método auxiliar para moverse al bloque anterior y posicionarse en la última canción
+  Future<void> _moveToPreviousBlock() async {
+    if (!hasPreviousBlock) return;
+
+    try {
+      _currentBlockIndex--;
+      final previousBlock = _blocks[_currentBlockIndex];
+      final songs = previousBlock['songs'] as List<dynamic>;
+      final tracks = songs.map((songJson) => _songToJellyfinTrack(songJson)).toList();
+
+      if (tracks.isNotEmpty) {
+        _playlist = tracks;
+        _currentTrackIndex = tracks.length - 1;
+        _currentSongInBlockIndex = tracks.length - 1;
+        _currentTrack = tracks.last;
+
+        debugPrint('🔲 Retrocediendo al bloque anterior ${previousBlock['name']} (última canción) con ${tracks.length} canciones');
+
+        notifyListeners();
+
+        await _player.setUrl(_currentTrack!.streamUrl);
+        await _player.play();
+
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('❌ Error retrocediendo al bloque anterior: $e');
     }
   }
 }
