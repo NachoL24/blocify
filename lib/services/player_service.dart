@@ -694,33 +694,81 @@ class PlayerService extends ChangeNotifier {
       );
 
       if (_isBlockMode && queueData['blocks'] != null) {
-        // Si estamos en modo blocks, guardar todos los bloques y cargar el primer bloque
+        // Si estamos en modo blocks, guardar todos los bloques
         _blocks = List<Map<String, dynamic>>.from(queueData['blocks']);
-        _currentBlockIndex = 0;
-        _currentSongInBlockIndex = 0;
 
-        final firstBlock = _blocks[0];
-        final songs = firstBlock['songs'] as List<dynamic>;
-        final newTracks = songs.map((songJson) => _songToJellyfinTrack(songJson)).toList();
+        // Encontrar en qué bloque está la canción actual
+        int foundBlockIndex = -1;
+        int foundSongIndex = -1;
+        List<JellyfinTrack> foundBlockTracks = [];
 
-        if (newTracks.isNotEmpty) {
-          _playlist = newTracks;
-          _originalQueue = List.from(newTracks);
+        for (int blockIndex = 0; blockIndex < _blocks.length; blockIndex++) {
+          final block = _blocks[blockIndex];
+          final songs = block['songs'] as List<dynamic>;
+          final tracks = songs.map((songJson) => _songToJellyfinTrack(songJson)).toList();
 
-          // Buscar la canción actual en la nueva cola
-          int currentSongIndex = newTracks.indexWhere((track) => track.id == currentSongId);
-          if (currentSongIndex != -1) {
-            _currentTrackIndex = currentSongIndex;
-            _currentSongInBlockIndex = currentSongIndex;
-            _currentTrack = newTracks[currentSongIndex];
-          } else {
-            _currentTrackIndex = 0;
+          int songIndex = tracks.indexWhere((track) => track.id == currentSongId);
+          if (songIndex != -1) {
+            foundBlockIndex = blockIndex;
+            foundSongIndex = songIndex;
+            foundBlockTracks = tracks;
+            break;
+          }
+        }
+
+        if (foundBlockIndex != -1) {
+          // Encontramos la canción en un bloque específico
+          _currentBlockIndex = foundBlockIndex;
+
+          if (_isRandomMode) {
+            // En modo random: mover la canción actual al inicio del bloque
+            final currentTrack = foundBlockTracks[foundSongIndex];
+
+            // Remover la canción de su posición actual
+            foundBlockTracks.removeAt(foundSongIndex);
+
+            // Insertarla al inicio
+            foundBlockTracks.insert(0, currentTrack);
+
+            // Configurar índices
             _currentSongInBlockIndex = 0;
+            _currentTrackIndex = 0;
+            _currentTrack = currentTrack;
+
+            debugPrint('🔀 Modo random activado: canción movida al inicio del bloque $foundBlockIndex');
+          } else {
+            // En modo lineal: mantener la posición original
+            _currentSongInBlockIndex = foundSongIndex;
+            _currentTrackIndex = foundSongIndex;
+            _currentTrack = foundBlockTracks[foundSongIndex];
+
+            debugPrint('🔀 Modo lineal: canción mantenida en posición $foundSongIndex del bloque $foundBlockIndex');
+          }
+
+          _playlist = foundBlockTracks;
+          _originalQueue = List.from(foundBlockTracks);
+
+        } else {
+          // Si no encontramos la canción, usar el primer bloque
+          _currentBlockIndex = 0;
+          _currentSongInBlockIndex = 0;
+
+          final firstBlock = _blocks[0];
+          final songs = firstBlock['songs'] as List<dynamic>;
+          final newTracks = songs.map((songJson) => _songToJellyfinTrack(songJson)).toList();
+
+          if (newTracks.isNotEmpty) {
+            _playlist = newTracks;
+            _originalQueue = List.from(newTracks);
+            _currentTrackIndex = 0;
             _currentTrack = newTracks[0];
           }
 
-          debugPrint('🔀 Nueva cola generada con bloques: ${_blocks.length} bloques, primer bloque con ${newTracks.length} canciones, canción actual en índice $_currentTrackIndex');
+          debugPrint('🔀 Canción no encontrada, usando primer bloque');
         }
+
+        debugPrint('🔀 Nueva cola generada con bloques: ${_blocks.length} bloques, bloque actual ${_currentBlockIndex} con ${_playlist.length} canciones');
+
       } else if (queueData['songs'] != null) {
         // Si no está en modo blocks, usar las canciones directamente
         final songs = queueData['songs'] as List<dynamic>;
