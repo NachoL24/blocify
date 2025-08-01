@@ -236,12 +236,20 @@ class PlaylistService {
       };
 
       final response = await _httpService.post(
-        '/api/playlists/$playlistId/blocks',
+        '/api/playlists/$playlistId/block',
         body: body,
       );
 
       if (response.statusCode == 201) {
         return Block.fromJson(json.decode(response.body));
+      } else if (response.statusCode == 204) {
+        // No hay contenido, devolvemos un bloque vacío o ficticio
+        return Block(
+          id: -1,
+          name: name,
+          description: description ?? '',
+          songs: [],
+        );
       }
       throw Exception('Error: ${response.statusCode}');
     } catch (e) {
@@ -265,8 +273,13 @@ class PlaylistService {
         body: body,
       );
 
-      if (response.statusCode == 200) {
-        return Block.fromJson(json.decode(response.body));
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return Block(
+          id: blockId,
+          name: name,
+          description: description ?? '',
+          songs: [],
+        );
       }
       throw Exception('Error: ${response.statusCode}');
     } catch (e) {
@@ -280,7 +293,7 @@ class PlaylistService {
   }) async {
     try {
       final response = await _httpService.delete(
-        '/api/playlists/$playlistId/blocks/$blockId',
+          '/api/playlists/$playlistId/block/$blockId',
       );
 
       if (response.statusCode != 204) {
