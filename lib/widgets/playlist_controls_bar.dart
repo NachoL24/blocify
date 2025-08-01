@@ -109,8 +109,8 @@ class PlaylistControlsBar extends StatelessWidget {
                     playerService.setBlockMode(!playerService.isBlockMode);
                   },
                   tooltip: playerService.isBlockMode
-                      ? 'Desactivar bloques'
-                      : 'Activar bloques',
+                      ? 'Desactivar Sublist'
+                      : 'Activar Sublist',
                 ),
               ),
             ],

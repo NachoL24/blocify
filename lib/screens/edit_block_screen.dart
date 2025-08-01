@@ -50,6 +50,12 @@ class _EditBlockScreenState extends State<EditBlockScreen> {
       );
 
       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Bloque editado con éxito'),
+            backgroundColor: Colors.green,
+          ),
+        );
         Navigator.pop(context, true);
       }
     } catch (e) {
@@ -70,7 +76,7 @@ class _EditBlockScreenState extends State<EditBlockScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Editar Bloque'),
+        title: const Text('Editar Sublist'),
         actions: [
           IconButton(
             icon: _isLoading
@@ -89,7 +95,7 @@ class _EditBlockScreenState extends State<EditBlockScreen> {
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: 'Nombre del bloque',
+                  labelText: 'Nombre de la Playlist',
                   border: const OutlineInputBorder(),
                   labelStyle: TextStyle(color: context.colors.secondaryText),
                 ),

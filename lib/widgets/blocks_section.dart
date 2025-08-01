@@ -37,8 +37,12 @@ class BlocksSection extends StatelessWidget {
             ),
             if (isOwner)
               IconButton(
-                icon: Icon(Icons.add, color: context.primaryColor),
+                icon: const Icon(Icons.add, color: Colors.white),
                 onPressed: onCreateBlock,
+                style: IconButton.styleFrom(
+                  backgroundColor: context.primaryColor,
+                  shape: const CircleBorder(),
+                ),
               ),
           ],
         ),

@@ -59,8 +59,8 @@ class _BlockTileState extends State<BlockTile> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar Bloque'),
-        content: const Text('¿Estás seguro de que quieres eliminar este bloque?'),
+        title: const Text('Eliminar Sublist'),
+        content: const Text('¿Estás seguro de que quieres eliminar este sublist?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -82,6 +82,12 @@ class _BlockTileState extends State<BlockTile> {
           blockId: widget.block.id,
         );
         if (mounted) widget.onRefresh();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Bloque eliminado con éxito'),
+            backgroundColor: Colors.red,
+          ),
+        );
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -121,49 +127,52 @@ class _BlockTileState extends State<BlockTile> {
               ),
             ),
             subtitle: Text(
-              '${widget.block.songs.length} canciones',
+              '${widget.block.songs.length} songs',
               style: TextStyle(color: context.colors.secondaryText),
             ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Icon(
-                    _isExpanded ? Icons.expand_less : Icons.expand_more,
-                    color: context.colors.text,
+            trailing: SizedBox(
+              width: 96,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      _isExpanded ? Icons.expand_less : Icons.expand_more,
+                      color: context.colors.text,
+                    ),
+                    onPressed: () => setState(() => _isExpanded = !_isExpanded),
                   ),
-                  onPressed: () => setState(() => _isExpanded = !_isExpanded),
-                ),
-                if (widget.isOwner)
-                  PopupMenuButton<String>(
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit, size: 20),
-                            SizedBox(width: 8),
-                            Text('Editar'),
-                          ],
+                  if (widget.isOwner)
+                    PopupMenuButton<String>(
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit, size: 20),
+                              SizedBox(width: 8),
+                              Text('Editar'),
+                            ],
+                          ),
                         ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete, color: Colors.red, size: 20),
-                            SizedBox(width: 8),
-                            Text('Eliminar', style: TextStyle(color: Colors.red)),
-                          ],
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete, color: Colors.red, size: 20),
+                              SizedBox(width: 8),
+                              Text('Eliminar', style: TextStyle(color: Colors.red)),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                    onSelected: (value) async {
-                      if (value == 'edit') await _editBlock();
-                      if (value == 'delete') await _deleteBlock();
-                    },
-                  ),
-              ],
+                      ],
+                      onSelected: (value) async {
+                        if (value == 'edit') await _editBlock();
+                        if (value == 'delete') await _deleteBlock();
+                      },
+                    ),
+                ],
+              ),
             ),
           ),
           if (_isExpanded)
@@ -194,4 +203,5 @@ class _BlockTileState extends State<BlockTile> {
       ),
     );
   }
+
 }

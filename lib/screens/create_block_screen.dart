@@ -32,6 +32,12 @@ class _CreateBlockScreenState extends State<CreateBlockScreen> {
       );
 
       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Bloque creado con éxito'),
+            backgroundColor: Colors.green,
+          ),
+        );
         Navigator.pop(context, true);
       }
     } catch (e) {
@@ -59,7 +65,7 @@ class _CreateBlockScreenState extends State<CreateBlockScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nuevo Bloque'),
+        title: const Text('Nueva Sublist'),
         actions: [
           IconButton(
             icon: _isLoading
@@ -78,7 +84,7 @@ class _CreateBlockScreenState extends State<CreateBlockScreen> {
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: 'Nombre del bloque',
+                  labelText: 'Nombre de Sublist',
                   border: const OutlineInputBorder(),
                   labelStyle: TextStyle(color: context.colors.secondaryText),
                 ),
@@ -109,7 +115,7 @@ class _CreateBlockScreenState extends State<CreateBlockScreen> {
                 child: _isLoading
                     ? const CircularProgressIndicator()
                     : Text(
-                  'Crear Bloque',
+                  'Crear Sublist',
                   style: TextStyle(color: context.colors.permanentWhite),
                 ),
               ),
