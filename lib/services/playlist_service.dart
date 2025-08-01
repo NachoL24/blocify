@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:blocify/services/http_service.dart';
 import '../models/playlist.dart';
 import '../models/playlist_summary.dart';
+import '../models/block.dart';
 import '../services/auth0_service.dart';
 
 class PlaylistService {
@@ -221,4 +222,89 @@ class PlaylistService {
       throw Exception('Error al obtener cola de reproducción: $e');
     }
   }
+
+  // Funciones de BLOQUES
+  Future<Block> createBlockInPlaylist({
+    required int playlistId,
+    required String name,
+    String? description,
+  }) async {
+    try {
+      final body = {
+        'name': name,
+        'description': description ?? '',
+      };
+
+      final response = await _httpService.post(
+        '/api/playlists/$playlistId/blocks',
+        body: body,
+      );
+
+      if (response.statusCode == 201) {
+        return Block.fromJson(json.decode(response.body));
+      }
+      throw Exception('Error: ${response.statusCode}');
+    } catch (e) {
+      throw Exception('Error al crear bloque: ${e.toString().replaceAll('Exception: ', '')}');
+    }
+  }
+
+  Future<Block> updateBlock({
+    required int blockId,
+    required String name,
+    String? description,
+  }) async {
+    try {
+      final body = {
+        'name': name,
+        if (description != null) 'description': description,
+      };
+
+      final response = await _httpService.patch(
+        '/api/blocks/$blockId',
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+        return Block.fromJson(json.decode(response.body));
+      }
+      throw Exception('Error: ${response.statusCode}');
+    } catch (e) {
+      throw Exception('Error al actualizar bloque: ${e.toString()}');
+    }
+  }
+
+  Future<void> deleteBlock({
+    required int playlistId,
+    required int blockId,
+  }) async {
+    try {
+      final response = await _httpService.delete(
+        '/api/playlists/$playlistId/blocks/$blockId',
+      );
+
+      if (response.statusCode != 204) {
+        throw Exception('Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error al eliminar bloque: ${e.toString()}');
+    }
+  }
+
+  Future<List<Block>> getBlocksByPlaylist(int playlistId) async {
+    try {
+      final response = await _httpService.get(
+        '/api/playlists/$playlistId/blocks',
+      );
+
+      if (response.statusCode == 200) {
+        final blocksJson = jsonDecode(response.body) as List;
+        return blocksJson.map((json) => Block.fromJson(json)).toList();
+      }
+      throw Exception('Error: ${response.statusCode}');
+    } catch (e) {
+      throw Exception('Error al obtener bloques: ${e.toString()}');
+    }
+  }
+
 }

@@ -9,11 +9,17 @@ import '../widgets/songs_section.dart';
 class PlaylistContent extends StatelessWidget {
   final Playlist playlist;
   final Function(Song) onSongTap;
+  final bool isOwner;
+  final VoidCallback onCreateBlock;
+  final VoidCallback onRefresh;
 
   const PlaylistContent({
     super.key,
     required this.playlist,
     required this.onSongTap,
+    required this.isOwner,
+    required this.onCreateBlock,
+    required this.onRefresh,
   });
 
   @override
@@ -25,14 +31,19 @@ class PlaylistContent extends StatelessWidget {
         children: [
           PlaylistHeader(playlist: playlist),
           const SizedBox(height: 24),
-          // Barra de controles (Play, Shuffle, Blocks)
+          // Barra de controles (Play, Shuffle, etc.)
           PlaylistControlsBar(playlistId: playlist.id),
           const SizedBox(height: 24),
+          // Sección de Bloques (con todos los parámetros requeridos)
           BlocksSection(
             blocks: playlist.blocks,
             playlistId: playlist.id,
+            isOwner: isOwner,
+            onCreateBlock: onCreateBlock,
+            onRefresh: onRefresh,
           ),
           const SizedBox(height: 24),
+          // Sección de Canciones
           SongsSection(
             songs: playlist.songs,
             onSongTap: onSongTap,

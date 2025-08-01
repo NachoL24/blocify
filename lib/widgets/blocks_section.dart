@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 import '../models/block.dart';
-import '../widgets/block_tile.dart';
+import '../theme/app_colors.dart';
+import 'block_tile.dart';
 
 class BlocksSection extends StatelessWidget {
   final List<Block> blocks;
   final int playlistId;
+  final bool isOwner;
+  final VoidCallback onCreateBlock;
+  final VoidCallback onRefresh;
 
   const BlocksSection({
     super.key,
     required this.blocks,
     required this.playlistId,
+    required this.isOwner,
+    required this.onCreateBlock,
+    required this.onRefresh,
   });
 
   @override
@@ -18,28 +24,45 @@ class BlocksSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Sublists',
-          style: TextStyle(
-            color: context.colors.text,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Bloques',
+              style: TextStyle(
+                color: context.colors.text,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (isOwner)
+              IconButton(
+                icon: Icon(Icons.add, color: context.primaryColor),
+                onPressed: onCreateBlock,
+              ),
+          ],
         ),
-        const SizedBox(height: 12),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: blocks.length,
-          itemBuilder: (context, index) {
-            final block = blocks[index];
-            return BlockTile(
-              block: block,
+        const SizedBox(height: 8),
+        if (blocks.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Text(
+              'No hay bloques en esta playlist',
+              style: TextStyle(color: context.colors.secondaryText),
+            ),
+          )
+        else
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: blocks.length,
+            itemBuilder: (context, index) => BlockTile(
+              block: blocks[index],
               playlistId: playlistId,
-              onTap: () {},
-            );
-          },
-        ),
+              isOwner: isOwner,
+              onRefresh: onRefresh,
+            ),
+          ),
       ],
     );
   }

@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 import '../models/block.dart';
-import '../services/player_service.dart';
-import '../widgets/song_tile.dart';
+import '../theme/app_colors.dart';
+import '../screens/edit_block_screen.dart';
+import '../services/playlist_service.dart';
 
 class BlockTile extends StatefulWidget {
   final Block block;
   final int playlistId;
-  final VoidCallback onTap;
+  final bool isOwner;
+  final VoidCallback onRefresh;
 
   const BlockTile({
     super.key,
     required this.block,
     required this.playlistId,
-    required this.onTap,
+    required this.isOwner,
+    required this.onRefresh,
   });
 
   @override
@@ -22,6 +24,7 @@ class BlockTile extends StatefulWidget {
 
 class _BlockTileState extends State<BlockTile> {
   bool _isExpanded = false;
+  bool _isDeleting = false;
 
   Color _getBlockColor() {
     final colors = [
@@ -35,103 +38,160 @@ class _BlockTileState extends State<BlockTile> {
     return colors[widget.block.id % colors.length];
   }
 
+  Future<void> _editBlock() async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditBlockScreen(
+          blockId: widget.block.id,
+          initialName: widget.block.name,
+          initialDescription: widget.block.description,
+        ),
+      ),
+    );
+
+    if (result == true && mounted) {
+      widget.onRefresh();
+    }
+  }
+
+  Future<void> _deleteBlock() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar Bloque'),
+        content: const Text('¿Estás seguro de que quieres eliminar este bloque?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      setState(() => _isDeleting = true);
+      try {
+        await PlaylistService.instance.deleteBlock(
+          playlistId: widget.playlistId,
+          blockId: widget.block.id,
+        );
+        if (mounted) widget.onRefresh();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) setState(() => _isDeleting = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        ListTile(
-          leading: Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: _getBlockColor(),
-              borderRadius: BorderRadius.circular(8),
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        children: [
+          ListTile(
+            leading: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: _getBlockColor(),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.queue_music, color: Colors.white),
             ),
-            child: const Icon(
-              Icons.queue_music,
-              color: Colors.white,
-              size: 24,
+            title: Text(
+              widget.block.name,
+              style: TextStyle(
+                color: context.colors.text,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
-          title: Text(
-            widget.block.name,
-            style: TextStyle(
-              color: context.colors.text,
-              fontWeight: FontWeight.w500,
+            subtitle: Text(
+              '${widget.block.songs.length} canciones',
+              style: TextStyle(color: context.colors.secondaryText),
             ),
-          ),
-          subtitle: Text(
-            '${widget.block.songs.length} songs',
-            style: TextStyle(
-              color: context.colors.secondaryText,
-              fontSize: 14,
-            ),
-          ),
-          trailing: IconButton(
-            icon: Icon(
-              _isExpanded ? Icons.expand_less : Icons.expand_more,
-              color: context.colors.text,
-            ),
-            onPressed: () {
-              setState(() {
-                _isExpanded = !_isExpanded;
-              });
-            },
-          ),
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Reproduciendo ${widget.block.name}')),
-            );
-          },
-        ),
-        if (_isExpanded)
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: widget.block.songs.length,
-            itemBuilder: (context, index) {
-              final song = widget.block.songs[index];
-              return Padding(
-                padding: const EdgeInsets.only(left: 16.0),
-                child: SongTile(
-                  song: song,
-                  onTap: () async {
-                    try {
-                      final playerService = PlayerService.instance;
-
-                      // Usar el método playFromBlock para reproducir desde el bloque específico
-                      await playerService.playFromBlock(
-                        widget.playlistId,
-                        widget.block.id,
-                        song.itemId,
-                      );
-
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Reproduciendo ${song.name} desde ${widget.block.name}'),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      }
-                    } catch (e) {
-                      debugPrint('Error al reproducir canción desde bloque: $e');
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Error al reproducir: ${e.toString()}'),
-                            backgroundColor: Colors.red,
-                            duration: const Duration(seconds: 3),
-                          ),
-                        );
-                      }
-                    }
-                  },
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    _isExpanded ? Icons.expand_less : Icons.expand_more,
+                    color: context.colors.text,
+                  ),
+                  onPressed: () => setState(() => _isExpanded = !_isExpanded),
                 ),
-              );
-            },
+                if (widget.isOwner)
+                  PopupMenuButton<String>(
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit, size: 20),
+                            SizedBox(width: 8),
+                            Text('Editar'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete, color: Colors.red, size: 20),
+                            SizedBox(width: 8),
+                            Text('Eliminar', style: TextStyle(color: Colors.red)),
+                          ],
+                        ),
+                      ),
+                    ],
+                    onSelected: (value) async {
+                      if (value == 'edit') await _editBlock();
+                      if (value == 'delete') await _deleteBlock();
+                    },
+                  ),
+              ],
+            ),
           ),
-      ],
+          if (_isExpanded)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (widget.block.description?.isNotEmpty ?? false)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        widget.block.description!,
+                        style: TextStyle(color: context.colors.secondaryText),
+                      ),
+                    ),
+                  const Divider(),
+                  ...widget.block.songs.map((song) => ListTile(
+                    leading: const Icon(Icons.music_note),
+                    title: Text(song.name),
+                    subtitle: Text(song.artist),
+                    onTap: () {},
+                  )),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
