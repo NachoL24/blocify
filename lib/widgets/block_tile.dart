@@ -217,7 +217,24 @@ class _BlockTileState extends State<BlockTile> {
                         albumArt: song.picture,
                       );
                     },
-                  )),
+                    onRemove: widget.isOwner
+                        ? () async {
+                      try {
+                        await PlaylistService.instance.removeSongFromBlock(
+                          playlistId: widget.playlistId,
+                          blockId: widget.block.id,
+                          songId: song.id,
+                        );
+                        widget.onRefresh();
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error al quitar canción: $e')),
+                        );
+                      }
+                    }
+                        : null,
+                    mode: SongTileMode.block,
+                  ))
                 ],
               ),
             ),

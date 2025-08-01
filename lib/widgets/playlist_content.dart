@@ -1,3 +1,4 @@
+import 'package:blocify/widgets/song_tile.dart';
 import 'package:flutter/material.dart';
 import '../models/playlist.dart';
 import '../models/song.dart';
@@ -53,6 +54,7 @@ class PlaylistContent extends StatelessWidget {
             onSongTap: onSongTap,
             onRemove: onRemoveSong,
             onAddToBlock: onAddSongToBlock,
+            mode: SongTileMode.playlist,
           ),
         ],
       ),

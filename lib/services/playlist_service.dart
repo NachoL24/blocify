@@ -179,20 +179,9 @@ class PlaylistService {
         });
 
         // Convertir canciones
-        final songs = (data['songs'] as List? ?? []).map((track) {
-          return Song(
-            id: track['id'],
-            name: track['name'],
-            artist: track['artist'],
-            artistId: track['artistId'] ?? 0,
-            album: track['album'],
-            albumId: track['albumId'] ?? 0,
-            itemId: track['itemId'],
-            duration: track['duration'] ?? 0,
-            picture: JellyfinService.getAlbumImageUrl(track['albumId']) ??
-                JellyfinService.getImageUrl(track['itemId']),
-          );
-        }).toList();
+        final songs = (data['songs'] as List? ?? [])
+            .map((track) => Song.fromJson(track))
+            .toList();
 
         // Convertir bloques (si existen)
         final blocks = (data['blocks'] as List? ?? []).map((block) {
@@ -396,6 +385,16 @@ class PlaylistService {
     }
   }
 
-
+  Future<void> removeSongFromBlock({
+    required int playlistId,
+    required int blockId,
+    required String songId,
+  }) async {
+    final url = '/api/playlists/$playlistId/block/$blockId/remove?songId=$songId';
+    final res = await _httpService.post(url);
+    if (res.statusCode != 200 && res.statusCode != 204) {
+      throw Exception('Error al quitar canción del bloque: ${res.statusCode}');
+    }
+  }
 
 }

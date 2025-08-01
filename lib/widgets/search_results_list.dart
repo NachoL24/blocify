@@ -61,6 +61,7 @@ class SearchResultsList extends StatelessWidget {
           song: song,
           onTap: () => onSongTap(song),
           onAddToPlaylist: () => _showAddToPlaylistDialog(context, song),
+          mode: SongTileMode.search,
         );
       },
     );

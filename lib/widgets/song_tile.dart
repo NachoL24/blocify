@@ -1,7 +1,12 @@
 import 'package:blocify/theme/app_colors.dart';
 import 'package:flutter/material.dart';
-
 import '../models/song.dart';
+
+enum SongTileMode {
+  playlist,
+  search,
+  block,
+}
 
 class SongTile extends StatelessWidget {
   final Song song;
@@ -11,11 +16,13 @@ class SongTile extends StatelessWidget {
   final VoidCallback? onRemove;
   final VoidCallback? onAddToBlock;
   final VoidCallback? onAddToPlaylist;
+  final SongTileMode mode;
 
   const SongTile({
     super.key,
     required this.song,
     required this.onTap,
+    required this.mode,
     this.showAlbum = false,
     this.trailing,
     this.onRemove,
@@ -115,17 +122,45 @@ class SongTile extends StatelessWidget {
             }
           },
           itemBuilder: (context) {
-            final items = <PopupMenuEntry<String>>[];
-            if (onRemove != null) {
-              items.add(const PopupMenuItem(value: 'remove', child: Text('Quitar de playlist')));
+            switch (mode) {
+              case SongTileMode.playlist:
+                return [
+                  const PopupMenuItem(
+                    value: 'addToBlock',
+                    child: Text('Añadir a bloque'),
+                  ),
+                  const PopupMenuItem(
+                    value: 'remove',
+                    child: Text('Eliminar de playlist'),
+                  ),
+                ];
+              case SongTileMode.search:
+                return [
+                  const PopupMenuItem(
+                    value: 'addToPlaylist',
+                    child: Row(
+                      children: [
+                        Icon(Icons.add, color: Colors.white, size: 20),
+                        SizedBox(width: 8),
+                        Text('Añadir a Playlist', style: TextStyle(color: Colors.white)),
+                      ],
+                    ),
+                  ),
+                ];
+              case SongTileMode.block:
+                return [
+                  const PopupMenuItem(
+                    value: 'remove',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete, color: Colors.red, size: 20),
+                        SizedBox(width: 8),
+                        Text('Eliminar del bloque', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                ];
             }
-            if (onAddToBlock != null) {
-              items.add(const PopupMenuItem(value: 'addToBlock', child: Text('Agregar a bloque')));
-            }
-            if (onRemove == null && onAddToBlock == null) {
-              items.add(const PopupMenuItem(value: 'addToPlaylist', child: Text('Añadir a playlist')));
-            }
-            return items;
           },
         ),
       ),

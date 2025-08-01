@@ -8,6 +8,7 @@ class SongsSection extends StatelessWidget {
   final Function(Song) onSongTap;
   final Function(Song) onRemove;
   final Function(Song) onAddToBlock;
+  final SongTileMode mode;
 
   const SongsSection({
     super.key,
@@ -15,6 +16,7 @@ class SongsSection extends StatelessWidget {
     required this.onSongTap,
     required this.onRemove,
     required this.onAddToBlock,
+    required this.mode,
   });
 
   @override
@@ -40,8 +42,9 @@ class SongsSection extends StatelessWidget {
             return SongTile(
               song: song,
               onTap: () => onSongTap(song),
-              onRemove: onRemove != null ? () => onRemove!(song) : null,
-              onAddToBlock: onAddToBlock != null ? () => onAddToBlock!(song) : null,
+              onRemove: () => onRemove(song),
+              onAddToBlock: () => onAddToBlock(song),
+              mode: mode,
             );
           },
         ),
