@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../models/block.dart';
+import '../models/song.dart';
 import '../services/playlist_service.dart';
 import '../services/player_service.dart';
 import '../models/playlist.dart';
@@ -196,6 +198,61 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     );
   }
 
+  void _removeSong(Song song) async {
+    try {
+      await _playlistService.removeSongFromPlaylist(
+        playlistId: widget.playlistId,
+        songId: song.id,
+      );
+      await _loadPlaylistDetails();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al quitar canción: $e')),
+      );
+    }
+  }
+
+  void _addToBlock(Song song) async {
+    final blocks = _playlist?.blocks ?? [];
+    if (blocks.isEmpty) return;
+
+    final selectedBlock = await showDialog<Block?>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: const Text('Elegí un bloque'),
+        children: blocks.map((block) {
+          return SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, block),
+            child: Text(block.name),
+          );
+        }).toList(),
+      ),
+    );
+
+    if (selectedBlock != null) {
+      final alreadyExists = selectedBlock.songs.any((s) => s.id == song.id);
+      if (alreadyExists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ya está en el bloque')),
+        );
+        return;
+      }
+
+      try {
+        await _playlistService.addSongToBlock(
+          playlistId: widget.playlistId,
+          blockId: selectedBlock.id,
+          songId: song.id,
+        );
+        await _loadPlaylistDetails();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al agregar al bloque: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final content = Scaffold(
@@ -217,7 +274,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
         ),
         centerTitle: true,
         actions: [
-          if (widget.isOwner) // 4. Solo mostrar botón de edición si es owner
+          if (widget.isOwner)
             IconButton(
               icon: Icon(Icons.edit, color: context.colors.text),
               onPressed: _showEditPlaylistDialog,
@@ -263,12 +320,15 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
             }
           }
         },
-        isOwner: widget.isOwner, // 5. Pasamos el parámetro isOwner
-        onCreateBlock: _navigateToCreateBlockScreen, // 6. Pasamos el método
-        onRefresh: _loadPlaylistDetails, // 7. Pasamos el método de refresh
+        isOwner: widget.isOwner,
+        onCreateBlock: _navigateToCreateBlockScreen,
+        onRefresh: _loadPlaylistDetails,
+        onRemoveSong: _removeSong,
+        onAddSongToBlock: _addToBlock,
       ),
     );
 
     return widget.showBackButton ? MainLayout(child: content) : content;
   }
+
 }

@@ -73,8 +73,7 @@ class PlaylistService {
         'id': playlistId,
         'name': name,
         'description': description,
-        'blocks': [],
-        'songs': [],
+        // 🔥 NO enviar blocks ni songs aquí
       };
 
       print('✏️ Actualizando playlist con datos:');
@@ -83,7 +82,7 @@ class PlaylistService {
       print('   - Description: $description');
 
       final response =
-          await _httpService.patch('/api/playlists/$playlistId', body: body);
+      await _httpService.patch('/api/playlists/$playlistId', body: body);
 
       print('📱 Respuesta del servidor:');
       print('   - Status: ${response.statusCode}');
@@ -99,6 +98,7 @@ class PlaylistService {
       throw Exception('Error al actualizar playlist: $e');
     }
   }
+
 
   Future<List<PlaylistSummary>> getTopPlaylists() async {
     try {
@@ -357,5 +357,45 @@ class PlaylistService {
       throw Exception('Error al obtener bloques: ${e.toString()}');
     }
   }
+
+  Future<void> removeSongFromPlaylist({
+    required int playlistId,
+    required String songId,
+  }) async {
+    final url = '/api/playlists/$playlistId/remove?songId=$songId';
+    final res = await _httpService.post(url);
+    if (res.statusCode != 200 && res.statusCode != 204) {
+      throw Exception('Error al quitar canción: ${res.statusCode}');
+    }
+  }
+
+  Future<void> addSongToBlock({
+    required int playlistId,
+    required int blockId,
+    required String songId,
+  }) async {
+    final url = '/api/playlists/$playlistId/block/$blockId/add?songId=$songId';
+    final res = await _httpService.post(url);
+    if (res.statusCode != 200 && res.statusCode != 204) {
+      throw Exception('Error al agregar canción al bloque: ${res.statusCode}');
+    }
+  }
+
+  Future<void> addSongToPlaylist({
+    required int playlistId,
+    required Song song,
+  }) async {
+    final url = '/api/playlists/$playlistId/add';
+    final res = await _httpService.post(
+      url,
+      body: song.toJson(),
+    );
+
+    if (res.statusCode != 200 && res.statusCode != 204) {
+      throw Exception('Error al añadir canción: ${res.statusCode}');
+    }
+  }
+
+
 
 }

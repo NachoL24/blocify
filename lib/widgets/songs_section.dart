@@ -6,11 +6,15 @@ import '../widgets/song_tile.dart';
 class SongsSection extends StatelessWidget {
   final List<Song> songs;
   final Function(Song) onSongTap;
+  final Function(Song) onRemove;
+  final Function(Song) onAddToBlock;
 
   const SongsSection({
     super.key,
     required this.songs,
     required this.onSongTap,
+    required this.onRemove,
+    required this.onAddToBlock,
   });
 
   @override
@@ -36,6 +40,8 @@ class SongsSection extends StatelessWidget {
             return SongTile(
               song: song,
               onTap: () => onSongTap(song),
+              onRemove: onRemove != null ? () => onRemove!(song) : null,
+              onAddToBlock: onAddToBlock != null ? () => onAddToBlock!(song) : null,
             );
           },
         ),

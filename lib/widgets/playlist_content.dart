@@ -12,6 +12,8 @@ class PlaylistContent extends StatelessWidget {
   final bool isOwner;
   final VoidCallback onCreateBlock;
   final VoidCallback onRefresh;
+  final Function(Song) onRemoveSong;
+  final Function(Song) onAddSongToBlock;
 
   const PlaylistContent({
     super.key,
@@ -20,6 +22,8 @@ class PlaylistContent extends StatelessWidget {
     required this.isOwner,
     required this.onCreateBlock,
     required this.onRefresh,
+    required this.onRemoveSong,
+    required this.onAddSongToBlock,
   });
 
   @override
@@ -47,6 +51,8 @@ class PlaylistContent extends StatelessWidget {
           SongsSection(
             songs: playlist.songs,
             onSongTap: onSongTap,
+            onRemove: onRemoveSong,
+            onAddToBlock: onAddSongToBlock,
           ),
         ],
       ),

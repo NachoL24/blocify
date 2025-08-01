@@ -1,6 +1,6 @@
+import 'package:blocify/theme/app_colors.dart';
 import 'package:flutter/material.dart';
-import '../services/jellyfin_service.dart';
-import '../theme/app_colors.dart';
+
 import '../models/song.dart';
 
 class SongTile extends StatelessWidget {
@@ -8,6 +8,9 @@ class SongTile extends StatelessWidget {
   final VoidCallback onTap;
   final bool showAlbum;
   final Widget? trailing;
+  final VoidCallback? onRemove;
+  final VoidCallback? onAddToBlock;
+  final VoidCallback? onAddToPlaylist;
 
   const SongTile({
     super.key,
@@ -15,6 +18,9 @@ class SongTile extends StatelessWidget {
     required this.onTap,
     this.showAlbum = false,
     this.trailing,
+    this.onRemove,
+    this.onAddToBlock,
+    this.onAddToPlaylist,
   });
 
   Color _getRandomColor() {
@@ -31,82 +37,98 @@ class SongTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: song.picture != null && song.picture!.isNotEmpty
-              ? Image.network(
-                  song.picture ?? JellyfinService.getImageUrl(song.itemId),
-                  width: 56,
-                  height: 56,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: _getRandomColor(),
-                      child: const Icon(
-                        Icons.music_note,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    );
-                  },
-                )
-              : Container(
+    return InkWell(
+      onTap: onTap,
+      child: ListTile(
+        leading: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: song.picture != null && song.picture!.isNotEmpty
+                ? Image.network(
+              song.picture!,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
                   color: _getRandomColor(),
-                  child: const Icon(
-                    Icons.music_note,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-        ),
-      ),
-      title: Text(
-        song.name,
-        style: TextStyle(
-          color: context.colors.text,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      subtitle: showAlbum && song.album.isNotEmpty
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  song.artist,
-                  style: TextStyle(
-                    color: context.colors.secondaryText,
-                    fontSize: 14,
-                  ),
-                ),
-                Text(
-                  song.album,
-                  style: TextStyle(
-                    color: context.colors.secondaryText.withOpacity(0.7),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
+                  child: const Icon(Icons.music_note, color: Colors.white),
+                );
+              },
             )
-          : Text(
+                : Container(
+              color: _getRandomColor(),
+              child: const Icon(Icons.music_note, color: Colors.white),
+            ),
+          ),
+        ),
+        title: Text(
+          song.name,
+          style: TextStyle(
+            color: context.colors.text,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        subtitle: showAlbum && song.album.isNotEmpty
+            ? Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
               song.artist,
               style: TextStyle(
                 color: context.colors.secondaryText,
                 fontSize: 14,
               ),
             ),
-      trailing: trailing ??
-          Icon(
-            Icons.more_horiz,
+            Text(
+              song.album,
+              style: TextStyle(
+                color: context.colors.secondaryText.withOpacity(0.7),
+                fontSize: 12,
+              ),
+            ),
+          ],
+        )
+            : Text(
+          song.artist,
+          style: TextStyle(
             color: context.colors.secondaryText,
+            fontSize: 14,
           ),
-      onTap: onTap,
+        ),
+        trailing: PopupMenuButton<String>(
+          icon: Icon(Icons.more_horiz, color: context.colors.secondaryText),
+          onSelected: (value) {
+            switch (value) {
+              case 'remove':
+                onRemove?.call();
+                break;
+              case 'addToBlock':
+                onAddToBlock?.call();
+                break;
+              case 'addToPlaylist':
+                onAddToPlaylist?.call();
+                break;
+            }
+          },
+          itemBuilder: (context) {
+            final items = <PopupMenuEntry<String>>[];
+            if (onRemove != null) {
+              items.add(const PopupMenuItem(value: 'remove', child: Text('Quitar de playlist')));
+            }
+            if (onAddToBlock != null) {
+              items.add(const PopupMenuItem(value: 'addToBlock', child: Text('Agregar a bloque')));
+            }
+            if (onRemove == null && onAddToBlock == null) {
+              items.add(const PopupMenuItem(value: 'addToPlaylist', child: Text('Añadir a playlist')));
+            }
+            return items;
+          },
+        ),
+      ),
     );
   }
 }
