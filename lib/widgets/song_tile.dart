@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/jellyfin_service.dart';
 import '../theme/app_colors.dart';
 import '../models/song.dart';
 
@@ -41,7 +42,7 @@ class SongTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           child: song.picture != null && song.picture!.isNotEmpty
               ? Image.network(
-                  song.picture!,
+                  song.picture ?? JellyfinService.getImageUrl(song.itemId),
                   width: 56,
                   height: 56,
                   fit: BoxFit.cover,

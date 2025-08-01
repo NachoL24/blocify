@@ -21,7 +21,7 @@ class Playlist {
       id: json['id'],
       name: json['name'],
       description: json['description'],
-      songs: (json['song'] as List<dynamic>?)
+      songs: (json['songs'] as List<dynamic>?)
               ?.map((songJson) => Song.fromJson(songJson))
               .toList() ??
           [],

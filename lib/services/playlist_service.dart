@@ -3,7 +3,9 @@ import 'package:blocify/services/http_service.dart';
 import '../models/playlist.dart';
 import '../models/playlist_summary.dart';
 import '../models/block.dart';
+import '../models/song.dart';
 import '../services/auth0_service.dart';
+import 'jellyfin_service.dart';
 
 class PlaylistService {
   static final PlaylistService instance = PlaylistService._internal();
@@ -161,19 +163,55 @@ class PlaylistService {
     }
   }
 
-  Future<Playlist> getPlaylistById(int id) async {
+  Future<Playlist> getPlaylistById(int playlistId) async {
     try {
-      final response = await _httpService.get('/api/playlists/$id');
+      final response = await HttpService().get('/api/playlists/$playlistId');
+      print('🔍 Response for playlist $playlistId: ${response.statusCode}');
+      print('📦 Response body: ${response.body}');
+
       if (response.statusCode == 200) {
-        return Playlist.fromJson(jsonDecode(response.body));
+        final data = json.decode(response.body);
+
+        // Debug: Imprimir estructura completa recibida
+        print('🎯 Full playlist data received:');
+        data.forEach((key, value) {
+          print('   - $key: ${value.runtimeType}');
+        });
+
+        // Convertir canciones
+        final songs = (data['songs'] as List? ?? []).map((track) {
+          return Song(
+            id: track['id'],
+            name: track['name'],
+            artist: track['artist'],
+            artistId: track['artistId'] ?? 0,
+            album: track['album'],
+            albumId: track['albumId'] ?? 0,
+            itemId: track['itemId'],
+            duration: track['duration'] ?? 0,
+            picture: JellyfinService.getAlbumImageUrl(track['albumId']) ??
+                JellyfinService.getImageUrl(track['itemId']),
+          );
+        }).toList();
+
+        // Convertir bloques (si existen)
+        final blocks = (data['blocks'] as List? ?? []).map((block) {
+          return Block.fromJson(block);
+        }).toList();
+
+        return Playlist(
+          id: data['id'],
+          name: data['name'],
+          description: data['description'] ?? '',
+          songs: songs,
+          blocks: blocks, // Ahora incluimos los bloques
+        );
       } else {
-        throw Exception('Error al cargar la playlist: ${response.statusCode}');
+        throw Exception('Failed to load playlist: ${response.statusCode}');
       }
     } catch (e) {
-      if (e is Exception) {
-        rethrow;
-      }
-      throw Exception('Error de conexión al cargar la playlist');
+      print('❌ Error in getPlaylistById: $e');
+      rethrow;
     }
   }
 

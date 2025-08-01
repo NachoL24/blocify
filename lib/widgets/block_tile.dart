@@ -1,5 +1,8 @@
+import 'package:blocify/widgets/song_tile.dart';
 import 'package:flutter/material.dart';
 import '../models/block.dart';
+import '../services/jellyfin_service.dart';
+import '../services/player_service.dart';
 import '../theme/app_colors.dart';
 import '../screens/edit_block_screen.dart';
 import '../services/playlist_service.dart';
@@ -110,6 +113,18 @@ class _BlockTileState extends State<BlockTile> {
       child: Column(
         children: [
           ListTile(
+            onTap: () async {
+              if (widget.block.songs.isNotEmpty) {
+                final firstSong = widget.block.songs.first;
+                final player = PlayerService.instance;
+                player.setBlockMode(true);
+                await player.playFromBlock(
+                  widget.playlistId,
+                  widget.block.id,
+                  firstSong.id,
+                );
+              }
+            },
             leading: Container(
               width: 48,
               height: 48,
@@ -190,11 +205,18 @@ class _BlockTileState extends State<BlockTile> {
                       ),
                     ),
                   const Divider(),
-                  ...widget.block.songs.map((song) => ListTile(
-                    leading: const Icon(Icons.music_note),
-                    title: Text(song.name),
-                    subtitle: Text(song.artist),
-                    onTap: () {},
+                  ...widget.block.songs.map((song) => SongTile(
+                    song: song,
+                    onTap: () async {
+                      final player = PlayerService.instance;
+                      player.setBlockMode(true);
+                      await player.playSong(
+                        audioUrl: JellyfinService.getStreamUrl(song.itemId),
+                        songTitle: song.name,
+                        artist: song.artist,
+                        albumArt: song.picture,
+                      );
+                    },
                   )),
                 ],
               ),
