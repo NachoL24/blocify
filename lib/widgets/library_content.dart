@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/playlist.dart';
 import '../models/playlist_summary.dart';
 import '../models/artist.dart';
 import '../services/playlist_service.dart';
@@ -198,82 +199,134 @@ class LibraryContent extends StatelessWidget {
     );
   }
 
-  Widget _buildPlaylistTile(BuildContext context, PlaylistSummary playlist) {
-    return Card(
-      color: context.colors.lightGray,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(12),
-        leading: _buildPlaylistCover(context, playlist),
-        title: Text(
-          playlist.name,
-          style: TextStyle(
-            color: context.colors.text,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        subtitle: Text(
-          '${playlist.songCount} songs',
-          style: TextStyle(
-            color: context.colors.secondaryText,
-            fontSize: 13,
-          ),
-        ),
-        trailing: PopupMenuButton<String>(
-          icon: Icon(Icons.more_vert, color: context.colors.secondaryText),
-          onSelected: (value) {
-            if (value == 'edit') {
-              _navigateToEditPlaylist(context, playlist);
-            } else if (value == 'delete') {
-              _deletePlaylist(context, playlist.id);
-            }
-          },
-          itemBuilder: (BuildContext context) => [
-            const PopupMenuItem<String>(
-              value: 'edit',
-              child: Text('Editar'),
+  Widget _buildPlaylistTile(BuildContext context, PlaylistSummary playlistSummary) {
+    return FutureBuilder<Playlist>(
+      future: PlaylistService.instance.getPlaylistById(playlistSummary.id),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const ListTile(
+            title: Text('Cargando...'),
+          );
+        }
+
+        if (!snapshot.hasData || snapshot.hasError) {
+          return ListTile(
+            title: Text(playlistSummary.name),
+            subtitle: const Text('Error al cargar canciones'),
+            leading: _buildPlaylistCover(context, playlistSummary),
+            trailing: const Icon(Icons.error, color: Colors.red),
+          );
+        }
+
+        final playlist = snapshot.data!;
+        final allSongs = [...playlist.songs, ...playlist.blocks.expand((b) => b.songs)];
+        final uniqueSongs = {for (var s in allSongs) s.id: s}.values.toList();
+
+        return Card(
+          color: context.colors.lightGray,
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          child: ListTile(
+            contentPadding: const EdgeInsets.all(12),
+            leading: _buildPlaylistCover(context, playlistSummary),
+            title: Text(
+              playlistSummary.name,
+              style: TextStyle(
+                color: context.colors.text,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-            const PopupMenuItem<String>(
-              value: 'delete',
-              child: Text('Eliminar', style: TextStyle(color: Colors.red)),
+            subtitle: Text(
+              '${uniqueSongs.length} songs',
+              style: TextStyle(
+                color: context.colors.secondaryText,
+                fontSize: 13,
+              ),
             ),
-          ],
-        ),
-        onTap: () => onPlaylistTap?.call(playlist.id, playlist.name),
-      ),
+            trailing: PopupMenuButton<String>(
+              icon: Icon(Icons.more_vert, color: context.colors.secondaryText),
+              onSelected: (value) async {
+                if (value == 'edit') {
+                  final edited = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => EditPlaylistScreen(playlist: playlistSummary),
+                    ),
+                  );
+
+                  if (edited == true && onPlaylistsUpdated != null) {
+                    onPlaylistsUpdated!();
+                  }
+                } else if (value == 'delete') {
+                  _deletePlaylist(context, playlistSummary.id);
+                }
+              },
+              itemBuilder: (BuildContext context) => [
+                const PopupMenuItem<String>(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit, size: 20),
+                      SizedBox(width: 8),
+                      Text('Editar'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete, color: Colors.red, size: 20),
+                      SizedBox(width: 8),
+                      Text('Eliminar', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            onTap: () => onPlaylistTap?.call(playlistSummary.id, playlistSummary.name),
+          ),
+        );
+      },
     );
   }
 
+
   Widget _buildPlaylistCover(BuildContext context, PlaylistSummary playlist) {
+    final colors = [
+      Colors.teal,
+      Colors.deepOrange,
+      Colors.indigo,
+      Colors.green,
+      Colors.purple,
+      Colors.pink,
+    ];
+    final color = colors[playlist.id % colors.length];
+
     return Container(
       width: 56,
       height: 56,
       decoration: BoxDecoration(
-        color: context.colors.secondaryText.withOpacity(0.2),
+        color: color,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Center(
-        child: Text(
-          playlist.name.substring(0, 1).toUpperCase(),
-          style: TextStyle(
-            color: context.colors.text,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
+        child: Icon(Icons.music_video, color: Colors.white),
       ),
     );
   }
 
+
   Widget _buildArtistsContent(BuildContext context) {
+    final validArtists = userArtists?.where((a) => a.songCount > 0).toSet().toList() ?? [];
+
     if (isLoadingUserArtists) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (userArtists == null || userArtists!.isEmpty) {
+    if (validArtists.isEmpty) {
       return Center(
         child: Text(
-          'No se encontraron artistas en tu biblioteca.',
+          'No se encontraron artistas con canciones.',
           style: TextStyle(
             color: context.colors.secondaryText,
             fontSize: 16,
@@ -285,13 +338,14 @@ class LibraryContent extends StatelessWidget {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: userArtists!.length,
+      itemCount: validArtists.length,
       itemBuilder: (context, index) {
-        final artist = userArtists![index];
+        final artist = validArtists[index];
         return _buildArtistTile(context, artist);
       },
     );
   }
+
 
   Widget _buildArtistTile(BuildContext context, ArtistSummary artist) {
     return Card(
@@ -322,13 +376,30 @@ class LibraryContent extends StatelessWidget {
   }
 
   Widget _buildArtistAvatar(BuildContext context, ArtistSummary artist) {
-    return CircleAvatar(
+    final colors = [
+      Colors.redAccent,
+      Colors.deepPurple,
+      Colors.teal,
+      Colors.orangeAccent,
+      Colors.indigo,
+      Colors.green,
+      Colors.blueGrey,
+    ];
+    final bgColor = colors[artist.id.hashCode % colors.length].withOpacity(0.6);
+    final initial = artist.name.isNotEmpty ? artist.name[0].toUpperCase() : '?';
+
+    return artist.imageUrl != null
+        ? CircleAvatar(
       radius: 24,
-      backgroundColor: context.colors.secondaryText.withOpacity(0.2),
+      backgroundImage: NetworkImage(artist.imageUrl!),
+    )
+        : CircleAvatar(
+      radius: 24,
+      backgroundColor: bgColor,
       child: Text(
-        artist.name.substring(0, 1).toUpperCase(),
-        style: TextStyle(
-          color: context.colors.text,
+        initial,
+        style: const TextStyle(
+          color: Colors.white,
           fontWeight: FontWeight.bold,
           fontSize: 18,
         ),
@@ -336,5 +407,5 @@ class LibraryContent extends StatelessWidget {
     );
   }
 
-  bool get mounted => true; // Helper para evitar errores en context.mounted
+  bool get mounted => true;
 }

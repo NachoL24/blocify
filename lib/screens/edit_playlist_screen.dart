@@ -55,7 +55,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {

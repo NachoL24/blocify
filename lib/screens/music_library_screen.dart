@@ -39,9 +39,9 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
   }
 
   Future<void> _loadUserPlaylists() async {
+    final playlists = await PlaylistService().getUserPlaylists(widget.userId);
     setState(() {
-      _isLoadingPlaylists = true;
-      _error = null;
+      _userPlaylists = playlists;
     });
 
     try {

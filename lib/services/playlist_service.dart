@@ -426,4 +426,12 @@ class PlaylistService {
     final jsonData = jsonDecode(response.body) as List;
     return jsonData.map((s) => Song.fromJson(s)).toList();
   }
+
+  List<Song> getAllSongsFromPlaylist(Playlist playlist) {
+    final blockSongs = playlist.blocks.expand((b) => b.songs);
+    final all = [...playlist.songs, ...blockSongs];
+    final unique = {for (var s in all) s.id: s}.values.toList(); // eliminar duplicados por ID
+    return unique;
+  }
+
 }
