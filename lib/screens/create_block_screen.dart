@@ -65,7 +65,7 @@ class _CreateBlockScreenState extends State<CreateBlockScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nueva Sublist'),
+        title: const Text('Nuevo Bloque'),
         actions: [
           IconButton(
             icon: _isLoading
@@ -84,7 +84,7 @@ class _CreateBlockScreenState extends State<CreateBlockScreen> {
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: 'Nombre de Sublist',
+                  labelText: 'Nombre de Bloque',
                   border: const OutlineInputBorder(),
                   labelStyle: TextStyle(color: context.colors.secondaryText),
                 ),
@@ -102,6 +102,7 @@ class _CreateBlockScreenState extends State<CreateBlockScreen> {
                   labelText: 'Descripción (opcional)',
                   border: const OutlineInputBorder(),
                   labelStyle: TextStyle(color: context.colors.secondaryText),
+                  alignLabelWithHint: true,
                 ),
                 maxLines: 3,
               ),
@@ -115,7 +116,7 @@ class _CreateBlockScreenState extends State<CreateBlockScreen> {
                 child: _isLoading
                     ? const CircularProgressIndicator()
                     : Text(
-                  'Crear Sublist',
+                  'Crear Bloque',
                   style: TextStyle(color: context.colors.permanentWhite),
                 ),
               ),

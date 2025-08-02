@@ -62,8 +62,8 @@ class _BlockTileState extends State<BlockTile> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar Sublist'),
-        content: const Text('¿Estás seguro de que quieres eliminar este sublist?'),
+        title: const Text('Eliminar Bloque'),
+        content: const Text('¿Estás seguro de que quieres eliminar este Bloque ?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),

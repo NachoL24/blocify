@@ -28,7 +28,7 @@ class BlocksSection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Bloques',
+              'Blocks',
               style: TextStyle(
                 color: context.colors.text,
                 fontSize: 18,

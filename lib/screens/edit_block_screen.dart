@@ -76,7 +76,7 @@ class _EditBlockScreenState extends State<EditBlockScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Editar Sublist'),
+        title: const Text('Editar Bloque'),
         actions: [
           IconButton(
             icon: _isLoading
@@ -95,7 +95,7 @@ class _EditBlockScreenState extends State<EditBlockScreen> {
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: 'Nombre de la Playlist',
+                  labelText: 'Nombre del Bloque',
                   border: const OutlineInputBorder(),
                   labelStyle: TextStyle(color: context.colors.secondaryText),
                 ),
@@ -113,6 +113,7 @@ class _EditBlockScreenState extends State<EditBlockScreen> {
                   labelText: 'Descripción (opcional)',
                   border: const OutlineInputBorder(),
                   labelStyle: TextStyle(color: context.colors.secondaryText),
+                  alignLabelWithHint: true,
                 ),
                 maxLines: 3,
               ),
