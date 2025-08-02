@@ -405,4 +405,13 @@ class PlaylistService {
     }
   }
 
+  Future<List<Song>> getBlockSongs({
+    required int playlistId,
+    required int blockId,
+  }) async {
+    final response = await HttpService().get('/playlists/$playlistId/blocks/$blockId/songs');
+    final jsonData = jsonDecode(response.body) as List;
+    return jsonData.map((s) => Song.fromJson(s)).toList();
+  }
+
 }

@@ -1,5 +1,6 @@
 import 'package:blocify/widgets/song_tile.dart';
 import 'package:flutter/material.dart';
+import '../models/block.dart';
 import '../models/playlist.dart';
 import '../models/song.dart';
 import '../widgets/playlist_header.dart';
@@ -15,6 +16,7 @@ class PlaylistContent extends StatelessWidget {
   final VoidCallback onRefresh;
   final Function(Song) onRemoveSong;
   final Function(Song) onAddSongToBlock;
+  final Function(Block)? onBlockTap;
 
   const PlaylistContent({
     super.key,
@@ -25,6 +27,7 @@ class PlaylistContent extends StatelessWidget {
     required this.onRefresh,
     required this.onRemoveSong,
     required this.onAddSongToBlock,
+    this.onBlockTap,
   });
 
   @override
@@ -46,6 +49,7 @@ class PlaylistContent extends StatelessWidget {
             isOwner: isOwner,
             onCreateBlock: onCreateBlock,
             onRefresh: onRefresh,
+            onBlockTap: onBlockTap,
           ),
           const SizedBox(height: 24),
           // Sección de Canciones

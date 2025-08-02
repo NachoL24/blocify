@@ -9,6 +9,7 @@ class BlocksSection extends StatelessWidget {
   final bool isOwner;
   final VoidCallback onCreateBlock;
   final VoidCallback onRefresh;
+  final Function(Block)? onBlockTap;
 
   const BlocksSection({
     super.key,
@@ -17,6 +18,7 @@ class BlocksSection extends StatelessWidget {
     required this.isOwner,
     required this.onCreateBlock,
     required this.onRefresh,
+    this.onBlockTap,
   });
 
   @override
@@ -65,6 +67,7 @@ class BlocksSection extends StatelessWidget {
               playlistId: playlistId,
               isOwner: isOwner,
               onRefresh: onRefresh,
+              onTap: () => onBlockTap?.call(blocks[index]),
             ),
           ),
       ],

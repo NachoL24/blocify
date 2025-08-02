@@ -296,10 +296,13 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
         onSongTap: (song) async {
           try {
             final playerService = PlayerService.instance;
-            await playerService.playFromPlaylist(
-              widget.playlistId,
-              song.itemId,
-            );
+            final playlistSongs = _playlist?.songs ?? [];
+            final tracks = playlistSongs.map((s) => s.toJellyfinTrack()).toList();
+            final track = song.toJellyfinTrack();
+            final index = tracks.indexWhere((t) => t.id == track.id);
+
+            await playerService.playJellyfinTrack(track, playlist: tracks, index: index);
+
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -312,7 +315,36 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Error al reproducir: ${e.toString()}'),
+                  content:
+                  Text('Error al reproducir: ${e.toString()}'),
+                  backgroundColor: Colors.red,
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+            }
+          }
+        },
+        onBlockTap: (block) async {
+          try {
+            final playerService = PlayerService.instance;
+            await playerService.playBlock(
+              playlistId: widget.playlistId,
+              blockId: block.id,
+            );
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Reproduciendo bloque ${block.name}'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content:
+                  Text('Error al reproducir bloque: ${e.toString()}'),
                   backgroundColor: Colors.red,
                   duration: const Duration(seconds: 3),
                 ),

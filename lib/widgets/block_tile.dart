@@ -12,6 +12,7 @@ class BlockTile extends StatefulWidget {
   final int playlistId;
   final bool isOwner;
   final VoidCallback onRefresh;
+  final VoidCallback? onTap;
 
   const BlockTile({
     super.key,
@@ -19,6 +20,7 @@ class BlockTile extends StatefulWidget {
     required this.playlistId,
     required this.isOwner,
     required this.onRefresh,
+    this.onTap,
   });
 
   @override
@@ -110,137 +112,143 @@ class _BlockTileState extends State<BlockTile> {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
-      child: Column(
-        children: [
-          ListTile(
-            onTap: () async {
-              if (widget.block.songs.isNotEmpty) {
-                final firstSong = widget.block.songs.first;
-                final player = PlayerService.instance;
-                player.setBlockMode(true);
-                await player.playFromBlock(
-                  widget.playlistId,
-                  widget.block.id,
-                  firstSong.id,
-                );
-              }
-            },
-            leading: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: _getBlockColor(),
-                borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: widget.onTap,
+        child: Column(
+          children: [
+            ListTile(
+              onTap: () async {
+                // --- CORRECCIÓN ---
+                // Al tocar el bloque, se llama a playFromBlock.
+                // Ya no se llama a setBlockMode(true) desde aquí.
+                // El método en el servicio se encargará de todo.
+                if (widget.block.songs.isNotEmpty) {
+                  final firstSong = widget.block.songs.first;
+                  final player = PlayerService.instance;
+                  await player.playFromBlock(
+                    widget.playlistId,
+                    widget.block.id,
+                    firstSong.id,
+                  );
+                }
+              },
+              leading: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: _getBlockColor(),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.queue_music, color: Colors.white),
               ),
-              child: const Icon(Icons.queue_music, color: Colors.white),
-            ),
-            title: Text(
-              widget.block.name,
-              style: TextStyle(
-                color: context.colors.text,
-                fontWeight: FontWeight.w500,
+              title: Text(
+                widget.block.name,
+                style: TextStyle(
+                  color: context.colors.text,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-            subtitle: Text(
-              '${widget.block.songs.length} songs',
-              style: TextStyle(color: context.colors.secondaryText),
-            ),
-            trailing: SizedBox(
-              width: 96,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      _isExpanded ? Icons.expand_less : Icons.expand_more,
-                      color: context.colors.text,
-                    ),
-                    onPressed: () => setState(() => _isExpanded = !_isExpanded),
-                  ),
-                  if (widget.isOwner)
-                    PopupMenuButton<String>(
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'edit',
-                          child: Row(
-                            children: [
-                              Icon(Icons.edit, size: 20),
-                              SizedBox(width: 8),
-                              Text('Editar'),
-                            ],
-                          ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              Icon(Icons.delete, color: Colors.red, size: 20),
-                              SizedBox(width: 8),
-                              Text('Eliminar', style: TextStyle(color: Colors.red)),
-                            ],
-                          ),
-                        ),
-                      ],
-                      onSelected: (value) async {
-                        if (value == 'edit') await _editBlock();
-                        if (value == 'delete') await _deleteBlock();
-                      },
-                    ),
-                ],
+              subtitle: Text(
+                '${widget.block.songs.length} songs',
+                style: TextStyle(color: context.colors.secondaryText),
               ),
-            ),
-          ),
-          if (_isExpanded)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (widget.block.description?.isNotEmpty ?? false)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(
-                        widget.block.description!,
-                        style: TextStyle(color: context.colors.secondaryText),
+              trailing: SizedBox(
+                width: 96,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        _isExpanded ? Icons.expand_less : Icons.expand_more,
+                        color: context.colors.text,
                       ),
+                      onPressed: () => setState(() => _isExpanded = !_isExpanded),
                     ),
-                  const Divider(),
-                  ...widget.block.songs.map((song) => SongTile(
-                    song: song,
-                    onTap: () async {
-                      final player = PlayerService.instance;
-                      player.setBlockMode(true);
-                      await player.playSong(
-                        audioUrl: JellyfinService.getStreamUrl(song.itemId),
-                        songTitle: song.name,
-                        artist: song.artist,
-                        albumArt: song.picture,
-                      );
-                    },
-                    onRemove: widget.isOwner
-                        ? () async {
-                      try {
-                        await PlaylistService.instance.removeSongFromBlock(
+                    if (widget.isOwner)
+                      PopupMenuButton<String>(
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit, size: 20),
+                                SizedBox(width: 8),
+                                Text('Editar'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete, color: Colors.red, size: 20),
+                                SizedBox(width: 8),
+                                Text('Eliminar', style: TextStyle(color: Colors.red)),
+                              ],
+                            ),
+                          ),
+                        ],
+                        onSelected: (value) async {
+                          if (value == 'edit') await _editBlock();
+                          if (value == 'delete') await _deleteBlock();
+                        },
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            if (_isExpanded)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (widget.block.description?.isNotEmpty ?? false)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          widget.block.description!,
+                          style: TextStyle(color: context.colors.secondaryText),
+                        ),
+                      ),
+                    const Divider(),
+                    ...widget.block.songs.map((song) => SongTile(
+                      song: song,
+                      onTap: () async {
+                        // --- CORRECCIÓN ---
+                        // Al tocar una canción específica, se llama a playBlock.
+                        // Ya no se llama a setBlockMode(true) desde aquí.
+                        final player = PlayerService.instance;
+                        await player.playBlock(
                           playlistId: widget.playlistId,
                           blockId: widget.block.id,
                           songId: song.id,
                         );
-                        widget.onRefresh();
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error al quitar canción: $e')),
-                        );
+                      },
+                      onRemove: widget.isOwner
+                          ? () async {
+                        try {
+                          await PlaylistService.instance.removeSongFromBlock(
+                            playlistId: widget.playlistId,
+                            blockId: widget.block.id,
+                            songId: song.id,
+                          );
+                          widget.onRefresh();
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error al quitar canción: $e')),
+                          );
+                        }
                       }
-                    }
-                        : null,
-                    mode: SongTileMode.block,
-                  ))
-                ],
+                          : null,
+                      mode: SongTileMode.block,
+                    ))
+                  ],
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
-
 }

@@ -593,50 +593,43 @@ class PlayerService extends ChangeNotifier {
     try {
       debugPrint('🔲 Reproduciendo desde playlist $playlistId, bloque $blockId, canción $songId');
 
-      // Obtener la cola de reproducción del backend
+      // La llamada a la API ahora usa 'block: true' para obtener siempre la estructura de bloques
       final queueData = await PlaylistService.instance.getPlaylistReproductionQueue(
         playlistId,
         random: _isRandomMode,
-        block: _isBlockMode,
+        block: true,
       );
 
-      if (_isBlockMode && queueData['blocks'] != null) {
-        // Guardar todos los bloques
+      if (queueData['blocks'] != null) {
         _blocks = List<Map<String, dynamic>>.from(queueData['blocks']);
-
-        // Encontrar el bloque específico
         int blockIndex = _blocks.indexWhere((block) => block['id'] == blockId);
         if (blockIndex == -1) blockIndex = 0;
 
         _currentBlockIndex = blockIndex;
-
-        // Extraer canciones del bloque actual
         final currentBlock = _blocks[_currentBlockIndex];
         final songs = currentBlock['songs'] as List<dynamic>;
         final tracks = songs.map((songJson) => _songToJellyfinTrack(songJson)).toList();
 
-        // Encontrar el índice de la canción específica
+        if (tracks.isEmpty) return;
+
         int songIndex = tracks.indexWhere((track) => track.id == songId);
         if (songIndex == -1) songIndex = 0;
 
-        _currentSongInBlockIndex = songIndex;
         _playlist = tracks;
+        _originalQueue = List.from(tracks);
         _currentTrackIndex = songIndex;
+        _currentSongInBlockIndex = songIndex;
         _currentTrack = tracks[songIndex];
         _currentPlaylistId = playlistId;
         _isPlayerVisible = true;
+        _isBlockMode = true; // <-- CORRECCIÓN: Se asegura de activar el modo bloque.
 
         debugPrint('🔲 Bloque $blockIndex cargado con ${tracks.length} canciones, empezando en canción $songIndex');
 
         notifyListeners();
-
         await _player.setUrl(_currentTrack!.streamUrl);
         await _player.play();
-
         notifyListeners();
-      } else {
-        // Fallback al método normal si no hay bloques
-        await playFromPlaylist(playlistId, songId);
       }
     } catch (e) {
       debugPrint('❌ Error reproduciendo desde bloque: $e');
@@ -1230,6 +1223,59 @@ class PlayerService extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint('❌ Error retrocediendo al bloque anterior: $e');
+    }
+  }
+
+  Future<void> playBlock({
+    required int playlistId,
+    required int blockId,
+    String? songId,
+  }) async {
+    try {
+      final queueData = await PlaylistService.instance.getPlaylistReproductionQueue(
+        playlistId,
+        random: _isRandomMode,
+        block: true,
+      );
+
+      if (queueData['blocks'] != null) {
+        _blocks = List<Map<String, dynamic>>.from(queueData['blocks']);
+
+        int blockIndex = _blocks.indexWhere((block) => block['id'] == blockId);
+        if (blockIndex == -1) blockIndex = 0;
+
+        _currentBlockIndex = blockIndex;
+        final currentBlock = _blocks[_currentBlockIndex];
+        final songs = currentBlock['songs'] as List<dynamic>;
+        final tracks = songs.map((songJson) => _songToJellyfinTrack(songJson)).toList();
+
+        if (tracks.isEmpty) return;
+
+        // Buscar canción seleccionada o usar la primera si songId es nulo
+        int index = 0;
+        if (songId != null) {
+          index = tracks.indexWhere((track) => track.id == songId);
+          if (index == -1) index = 0;
+        }
+
+        _playlist = tracks;
+        _originalQueue = List.from(tracks);
+        _currentTrackIndex = index;
+        _currentSongInBlockIndex = index;
+        _currentTrack = tracks[index];
+        _currentPlaylistId = playlistId;
+        _isPlayerVisible = true;
+        _isBlockMode = true; // Se asegura de activar el modo bloque.
+
+        debugPrint('🔲 Reproduciendo bloque "${currentBlock['name']}" desde canción index $index');
+
+        notifyListeners();
+        await _player.setUrl(_currentTrack!.streamUrl);
+        await _player.play();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('❌ Error en playBlock: $e');
     }
   }
 }
