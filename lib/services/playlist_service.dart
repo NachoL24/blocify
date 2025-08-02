@@ -1,13 +1,10 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import '../services/http_service.dart';
 import '../models/playlist.dart';
 import '../models/playlist_summary.dart';
 import '../models/block.dart';
 import '../models/song.dart';
 import '../services/auth0_service.dart';
-import '../config/backend_config.dart';
-import 'jellyfin_service.dart';
 
 class PlaylistService {
   static final PlaylistService instance = PlaylistService._internal();
@@ -230,7 +227,6 @@ class PlaylistService {
       throw Exception('Error al eliminar playlist: $e');
     }
   }
-
 
   Future<Map<String, dynamic>> getPlaylistReproductionQueue(
       int playlistId, {

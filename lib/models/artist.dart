@@ -1,5 +1,3 @@
-import '../services/artist_service.dart';
-
 class ArtistSummary {
   final String id;
   final String name;

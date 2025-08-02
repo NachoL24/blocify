@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:auth0_flutter/auth0_flutter.dart';
 import 'main_screen.dart';
 import '../theme/app_colors.dart';
 import '../services/auth0_service.dart';
