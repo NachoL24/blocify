@@ -1,15 +1,20 @@
 import 'dart:convert';
-import 'package:blocify/services/http_service.dart';
+import '../services/http_service.dart';
 import '../models/playlist.dart';
 import '../models/playlist_summary.dart';
 import '../services/auth0_service.dart';
 
 class PlaylistService {
   static final PlaylistService instance = PlaylistService._internal();
+  final HttpService _httpService = HttpService();
+
   factory PlaylistService() => instance;
   PlaylistService._internal();
 
-  final HttpService _httpService = HttpService();
+  // Método configure
+  void configure() {
+    print('PlaylistService configurado');
+  }
 
   Future<Map<String, dynamic>?> createPlaylist({
     required String name,
@@ -79,8 +84,7 @@ class PlaylistService {
       print('   - Name: $name');
       print('   - Description: $description');
 
-      final response =
-          await _httpService.patch('/api/playlists/$playlistId', body: body);
+      final response = await _httpService.patch('/api/playlists/$playlistId', body: body);
 
       print('📱 Respuesta del servidor:');
       print('   - Status: ${response.statusCode}');
@@ -173,6 +177,34 @@ class PlaylistService {
         rethrow;
       }
       throw Exception('Error de conexión al cargar la playlist');
+    }
+  }
+
+  Future<void> deletePlaylist(int playlistId) async {
+    try {
+      final auth0Service = Auth0Service.instance;
+
+      if (!auth0Service.isAuthenticated ||
+          auth0Service.currentCredentials == null ||
+          auth0Service.currentUser == null) {
+        throw Exception('Usuario no autenticado');
+      }
+
+      print('🗑️ Eliminando playlist con ID: $playlistId');
+
+      final response = await _httpService.delete('/api/playlists/$playlistId');
+
+      print('📱 Respuesta del servidor al eliminar:');
+      print('   - Status: ${response.statusCode}');
+      print('   - Body: ${response.body}');
+
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw Exception('Error al eliminar playlist: ${response.statusCode}');
+      }
+
+    } catch (e) {
+      print('❌ Error en deletePlaylist: $e');
+      throw Exception('Error al eliminar playlist: $e');
     }
   }
 

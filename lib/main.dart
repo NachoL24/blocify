@@ -36,7 +36,12 @@ class BlocifyApp extends StatelessWidget {
             '/': (context) => const LoginScreen(),
             '/home': (context) => const MainScreen(),
             '/player': (context) => const PlayerPage(),
-            '/library': (context) => const MusicLibraryScreen(),
+            '/library': (context) {
+              final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+              final userId = args?['userId'] ?? '';
+              final apiKey = args?['apiKey'] ?? '';
+              return MusicLibraryScreen(userId: userId, apiKey: apiKey);
+            },
             '/create-playlist': (context) => const CreatePlaylistScreen(),
             '/settings': (context) => const SettingsScreen(),
           },

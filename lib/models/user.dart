@@ -19,12 +19,8 @@ class User {
       name: json['name'],
       email: json['email'],
       playlists: (json['playlists'] as List<dynamic>?)
-              ?.map((playlist) => PlaylistSummary(
-                    id: playlist['id'],
-                    name: playlist['name'],
-                    description: playlist['description'],
-                  ))
-              .toList() ??
+          ?.map((playlist) => PlaylistSummary.fromJson(playlist))
+          .toList() ??
           [],
     );
   }
@@ -34,7 +30,7 @@ class User {
       'id': id,
       'name': name,
       'email': email,
-      'playlists': playlists,
+      'playlists': playlists.map((p) => p.toJson()).toList(),
     };
   }
 }
