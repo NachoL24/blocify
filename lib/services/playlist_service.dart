@@ -178,10 +178,18 @@ class PlaylistService {
           print('   - $key: ${value.runtimeType}');
         });
 
+        final playlist1 = Playlist.fromJson(data);
+        print('🎵 Playlist "${playlist1.name}" tiene ${playlist1.songs.length} canciones sueltas.');
+
         // Convertir canciones
-        final songs = (data['songs'] as List? ?? [])
+        final songs = (data['song'] as List? ?? [])
             .map((track) => Song.fromJson(track))
             .toList();
+
+
+        final playlist = Playlist.fromJson(data);
+        print('🎵 Playlist "${playlist.name}" tiene ${playlist.songs.length} canciones sueltas.');
+
 
         // Convertir bloques (si existen)
         final blocks = (data['blocks'] as List? ?? []).map((block) {

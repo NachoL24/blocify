@@ -21,6 +21,7 @@ class SongsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('Rendering ${songs.length} canciones sueltas');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -35,7 +36,7 @@ class SongsSection extends StatelessWidget {
         const SizedBox(height: 12),
         ListView.builder(
           shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
+          physics: NeverScrollableScrollPhysics(),
           itemCount: songs.length,
           itemBuilder: (context, index) {
             final song = songs[index];

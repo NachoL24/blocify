@@ -386,7 +386,7 @@ class _PlayerPageState extends State<PlayerPage> {
                                             ),
                                             const SizedBox(width: 4),
                                             Text(
-                                              _playerService.currentBlockName ?? 'Bloques',
+                                              _playerService.currentBlockName ?? 'Blocks',
                                               style: TextStyle(
                                                 color: context.colors.text,
                                                 fontSize: 12,

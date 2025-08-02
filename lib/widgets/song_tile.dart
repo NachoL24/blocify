@@ -127,11 +127,23 @@ class SongTile extends StatelessWidget {
                 return [
                   const PopupMenuItem(
                     value: 'addToBlock',
-                    child: Text('Añadir a bloque'),
+                    child: Row(
+                      children: [
+                        Icon(Icons.add, color: Colors.white, size: 20),
+                        SizedBox(width: 8),
+                        Text('Añadir a Bloque', style: TextStyle(color: Colors.white)),
+                      ],
+                    ),
                   ),
                   const PopupMenuItem(
                     value: 'remove',
-                    child: Text('Eliminar de playlist'),
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete, color: Colors.red, size: 20),
+                        SizedBox(width: 8),
+                        Text('Eliminar de la Playlist', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
                   ),
                 ];
               case SongTileMode.search:
