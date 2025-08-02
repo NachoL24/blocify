@@ -175,7 +175,7 @@ class _PlayerPageState extends State<PlayerPage> {
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
 
                       // Song Info
                       Column(
@@ -266,11 +266,12 @@ class _PlayerPageState extends State<PlayerPage> {
                                     iconSize: 28,
                                     icon: Icon(
                                       Icons.shuffle,
-                                      color:
-                                          context.colors.text.withOpacity(0.7),
+                                      color: _playerService.isRandomMode
+                                          ? context.colors.primary
+                                          : context.colors.text.withOpacity(0.7),
                                     ),
                                     onPressed: () {
-                                      // TODO: Implementar shuffle
+                                      _playerService.setRandomMode(!_playerService.isRandomMode);
                                     },
                                   ),
 
@@ -328,16 +329,88 @@ class _PlayerPageState extends State<PlayerPage> {
                                   IconButton(
                                     iconSize: 28,
                                     icon: Icon(
-                                      Icons.repeat,
-                                      color:
-                                          context.colors.text.withOpacity(0.7),
+                                      _playerService.loopIcon,
+                                      color: _playerService.loopMode > 0
+                                          ? context.colors.primary
+                                          : context.colors.text.withOpacity(0.7),
                                     ),
                                     onPressed: () {
-                                      // TODO: Implementar repeat
+                                      _playerService.toggleLoopMode();
                                     },
+                                    tooltip: _playerService.loopDescription,
                                   ),
                                 ],
                               ),
+
+                              // Controles de bloques (solo si está activado el modo blocks)
+                              if (_playerService.isBlockMode && _playerService.currentPlaylistId != null) ...[
+                                const SizedBox(height: 16),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: context.colors.surface,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: context.colors.text.withOpacity(0.3),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      // Botón bloque anterior
+                                      IconButton(
+                                        iconSize: 24,
+                                        icon: Icon(
+                                          Icons.skip_previous,
+                                          color: context.colors.text,
+                                        ),
+                                        onPressed: _playerService.previousBlock,
+                                        tooltip: 'Bloque anterior',
+                                      ),
+
+                                      // Indicador de modo blocks
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: context.colors.text.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(16),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.view_module,
+                                              size: 16,
+                                              color: context.colors.text,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              _playerService.currentBlockName ?? 'Blocks',
+                                              style: TextStyle(
+                                                color: context.colors.text,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+
+                                      // Botón bloque siguiente
+                                      IconButton(
+                                        iconSize: 24,
+                                        icon: Icon(
+                                          Icons.skip_next,
+                                          color: context.colors.text,
+                                        ),
+                                        onPressed: _playerService.nextBlock,
+                                        tooltip: 'Bloque siguiente',
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
 
                               const SizedBox(height: 24),
                             ],

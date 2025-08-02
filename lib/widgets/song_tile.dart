@@ -1,19 +1,33 @@
+import 'package:blocify/theme/app_colors.dart';
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 import '../models/song.dart';
+
+enum SongTileMode {
+  playlist,
+  search,
+  block,
+}
 
 class SongTile extends StatelessWidget {
   final Song song;
   final VoidCallback onTap;
   final bool showAlbum;
   final Widget? trailing;
+  final VoidCallback? onRemove;
+  final VoidCallback? onAddToBlock;
+  final VoidCallback? onAddToPlaylist;
+  final SongTileMode mode;
 
   const SongTile({
     super.key,
     required this.song,
     required this.onTap,
+    required this.mode,
     this.showAlbum = false,
     this.trailing,
+    this.onRemove,
+    this.onAddToBlock,
+    this.onAddToPlaylist,
   });
 
   Color _getRandomColor() {
@@ -30,82 +44,138 @@ class SongTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: song.picture != null && song.picture!.isNotEmpty
-              ? Image.network(
-                  song.picture!,
-                  width: 56,
-                  height: 56,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: _getRandomColor(),
-                      child: const Icon(
-                        Icons.music_note,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    );
-                  },
-                )
-              : Container(
+    return InkWell(
+      onTap: onTap,
+      child: ListTile(
+        leading: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: song.picture != null && song.picture!.isNotEmpty
+                ? Image.network(
+              song.picture!,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
                   color: _getRandomColor(),
-                  child: const Icon(
-                    Icons.music_note,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-        ),
-      ),
-      title: Text(
-        song.name,
-        style: TextStyle(
-          color: context.colors.text,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      subtitle: showAlbum && song.album.isNotEmpty
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  song.artist,
-                  style: TextStyle(
-                    color: context.colors.secondaryText,
-                    fontSize: 14,
-                  ),
-                ),
-                Text(
-                  song.album,
-                  style: TextStyle(
-                    color: context.colors.secondaryText.withOpacity(0.7),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
+                  child: const Icon(Icons.music_note, color: Colors.white),
+                );
+              },
             )
-          : Text(
+                : Container(
+              color: _getRandomColor(),
+              child: const Icon(Icons.music_note, color: Colors.white),
+            ),
+          ),
+        ),
+        title: Text(
+          song.name,
+          style: TextStyle(
+            color: context.colors.text,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        subtitle: showAlbum && song.album.isNotEmpty
+            ? Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
               song.artist,
               style: TextStyle(
                 color: context.colors.secondaryText,
                 fontSize: 14,
               ),
             ),
-      trailing: trailing ??
-          Icon(
-            Icons.more_horiz,
+            Text(
+              song.album,
+              style: TextStyle(
+                color: context.colors.secondaryText.withOpacity(0.7),
+                fontSize: 12,
+              ),
+            ),
+          ],
+        )
+            : Text(
+          song.artist,
+          style: TextStyle(
             color: context.colors.secondaryText,
+            fontSize: 14,
           ),
-      onTap: onTap,
+        ),
+        trailing: PopupMenuButton<String>(
+          icon: Icon(Icons.more_horiz, color: context.colors.secondaryText),
+          onSelected: (value) {
+            switch (value) {
+              case 'remove':
+                onRemove?.call();
+                break;
+              case 'addToBlock':
+                onAddToBlock?.call();
+                break;
+              case 'addToPlaylist':
+                onAddToPlaylist?.call();
+                break;
+            }
+          },
+          itemBuilder: (context) {
+            switch (mode) {
+              case SongTileMode.playlist:
+                return [
+                  const PopupMenuItem(
+                    value: 'addToBlock',
+                    child: Row(
+                      children: [
+                        Icon(Icons.add, color: Colors.white, size: 20),
+                        SizedBox(width: 8),
+                        Text('Añadir a Bloque', style: TextStyle(color: Colors.white)),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'remove',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete, color: Colors.red, size: 20),
+                        SizedBox(width: 8),
+                        Text('Eliminar de la Playlist', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                ];
+              case SongTileMode.search:
+                return [
+                  const PopupMenuItem(
+                    value: 'addToPlaylist',
+                    child: Row(
+                      children: [
+                        Icon(Icons.add, color: Colors.white, size: 20),
+                        SizedBox(width: 8),
+                        Text('Añadir a Playlist', style: TextStyle(color: Colors.white)),
+                      ],
+                    ),
+                  ),
+                ];
+              case SongTileMode.block:
+                return [
+                  const PopupMenuItem(
+                    value: 'remove',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete, color: Colors.red, size: 20),
+                        SizedBox(width: 8),
+                        Text('Eliminar del bloque', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                ];
+            }
+          },
+        ),
+      ),
     );
   }
 }

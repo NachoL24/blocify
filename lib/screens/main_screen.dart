@@ -299,6 +299,7 @@ class _MainScreenState extends State<MainScreen> {
       playlistId: _selectedPlaylistId!,
       playlistName: _selectedPlaylistName!,
       showBackButton: false,
+      isOwner: true,
     );
   }
 
