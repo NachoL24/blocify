@@ -11,6 +11,7 @@ class AppColors {
   static const Color lightDrawer = Color(0xFFDEDEDE);
   static const Color lightCard1 = Color(0xFFFFFFFF);
   static const Color lightSecondaryText = Color(0xFF240C3B);
+  static const Color lightSurface = Color(0xFFFFFFFF);
 
   static const Color darkSecondaryButton = Color(0x808C8C8C);
   static const Color darkPermanentWhite = Color(0xFFFFFFFF);
@@ -22,6 +23,7 @@ class AppColors {
   static const Color darkDrawer = Color(0x1A8C8C8C);
   static const Color darkCard1 = Color(0xFF323232);
   static const Color darkSecondaryText = Color(0xFFAD96C2);
+  static const Color darkSurface = Color(0xFF323232);
 
   static Color primary = lightPrimary;
   static Color permanentWhite = lightPermanentWhite;
@@ -36,6 +38,7 @@ class AppColors {
     drawer: lightDrawer,
     card1: lightCard1,
     secondaryText: lightSecondaryText,
+    surface: lightSurface,
   );
 
   static AppColorScheme dark = const AppColorScheme(
@@ -49,6 +52,7 @@ class AppColors {
     drawer: darkDrawer,
     card1: Color.fromARGB(255, 27, 27, 27),
     secondaryText: darkSecondaryText,
+    surface: darkSurface,
   );
 }
 
@@ -64,6 +68,7 @@ class AppColorScheme {
     required this.drawer,
     required this.card1,
     required this.secondaryText,
+    required this.surface,
   });
 
   final Color secondaryButton;
@@ -76,6 +81,7 @@ class AppColorScheme {
   final Color drawer;
   final Color card1;
   final Color secondaryText;
+  final Color surface;
 }
 
 extension AppColorsExtension on BuildContext {

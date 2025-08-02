@@ -227,34 +227,30 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                   onSongTap: (song) async {
                     try {
                       final playerService = PlayerService.instance;
-                      final tracks = await playerService.loadJellyfinTracks();
 
-                      final badBunnyTrack = tracks.firstWhere(
-                        (track) =>
-                            track.id == '5e8be675d5e30a4c8eb05bc4f43abafe',
-                        orElse: () => tracks.isNotEmpty
-                            ? tracks.first
-                            : throw Exception('No tracks available'),
+                      // Usar el nuevo método para reproducir desde playlist con cola del backend
+                      await playerService.playFromPlaylist(
+                        widget.playlistId,
+                        song.itemId, // Usar el itemId de la canción seleccionada
                       );
-
-                      await playerService.playJellyfinTrack(badBunnyTrack,
-                          playlist: tracks);
-
-                      // El mini player se mostrará automáticamente
 
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content:
-                                Text('Reproduciendo ${badBunnyTrack.name}'),
+                            content: Text('Reproduciendo ${song.name}'),
                             duration: const Duration(seconds: 2),
                           ),
                         );
                       }
                     } catch (e) {
+                      debugPrint('Error al reproducir canción: $e');
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error al reproducir: $e')),
+                          SnackBar(
+                            content: Text('Error al reproducir: ${e.toString()}'),
+                            backgroundColor: Colors.red,
+                            duration: const Duration(seconds: 3),
+                          ),
                         );
                       }
                     }

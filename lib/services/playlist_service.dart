@@ -1,10 +1,8 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import '../services/http_service.dart';
 import '../models/playlist.dart';
 import '../models/playlist_summary.dart';
 import '../services/auth0_service.dart';
-import '../config/backend_config.dart';
 
 class PlaylistService {
   static final PlaylistService instance = PlaylistService._internal();
@@ -13,9 +11,9 @@ class PlaylistService {
   factory PlaylistService() => instance;
   PlaylistService._internal();
 
-  // Método configure actualizado para usar BackendConfig
+  // Método configure
   void configure() {
-    print('PlaylistService configurado usando BackendConfig.baseUrl');
+    print('PlaylistService configurado');
   }
 
   Future<Map<String, dynamic>?> createPlaylist({
@@ -207,6 +205,52 @@ class PlaylistService {
     } catch (e) {
       print('❌ Error en deletePlaylist: $e');
       throw Exception('Error al eliminar playlist: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> getPlaylistReproductionQueue(
+    int playlistId, {
+    required bool random,
+    required bool block,
+    int? countBlock,
+  }) async {
+    try {
+      final queryParams = <String, String>{
+        'random': random.toString(),
+        'block': block.toString(),
+      };
+
+      if (block && countBlock != null) {
+        queryParams['countBlock'] = countBlock.toString();
+      }
+
+      final uri = Uri.parse('/api/reproduction/playlist/$playlistId')
+          .replace(queryParameters: queryParams);
+
+      print('🎵 Obteniendo cola de reproducción: ${uri.toString()}');
+
+      final response = await _httpService.get(uri.toString());
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        // Debug mejorado para mostrar información correcta según el modo
+        if (data['blocks'] != null) {
+          final totalSongs = (data['blocks'] as List).fold<int>(0, (sum, block) => sum + (block['songs'] as List).length);
+          print('✅ Cola de reproducción obtenida: ${data['blocks'].length} bloques con $totalSongs canciones total');
+        } else if (data['songs'] != null) {
+          print('✅ Cola de reproducción obtenida: ${data['songs'].length} canciones');
+        } else {
+          print('⚠️ Cola de reproducción vacía o formato desconocido');
+        }
+
+        return data;
+      } else {
+        throw Exception('Error al obtener cola de reproducción: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error en getPlaylistReproductionQueue: $e');
+      throw Exception('Error al obtener cola de reproducción: $e');
     }
   }
 }

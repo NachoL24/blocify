@@ -5,10 +5,12 @@ import '../widgets/block_tile.dart';
 
 class BlocksSection extends StatelessWidget {
   final List<Block> blocks;
+  final int playlistId;
 
   const BlocksSection({
     super.key,
     required this.blocks,
+    required this.playlistId,
   });
 
   @override
@@ -33,6 +35,7 @@ class BlocksSection extends StatelessWidget {
             final block = blocks[index];
             return BlockTile(
               block: block,
+              playlistId: playlistId,
               onTap: () {},
             );
           },
