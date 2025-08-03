@@ -1,250 +1,160 @@
 import 'package:flutter/material.dart';
-import '../services/jellyfin_service.dart';
-import '../services/player_service.dart';
+import '../services/playlist_service.dart';
+import '../services/artist_service.dart';
+import '../models/playlist_summary.dart';
+import '../models/artist.dart';
 import '../theme/app_colors.dart';
-import '../widgets/main_layout.dart';
+import '../widgets/library_content.dart';
+import 'create_playlist_screen.dart';
 
 class MusicLibraryScreen extends StatefulWidget {
-  const MusicLibraryScreen({super.key});
+  final String userId;
+  final String apiKey;
+
+  const MusicLibraryScreen({
+    super.key,
+    required this.userId,
+    required this.apiKey,
+  });
 
   @override
   State<MusicLibraryScreen> createState() => _MusicLibraryScreenState();
 }
 
 class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
-  List<JellyfinTrack>? _tracks;
-  bool _isLoading = true;
-  String? _errorMessage;
+  final PlaylistService _playlistService = PlaylistService.instance;
+  final ArtistService _artistService = ArtistService();
+
+  List<PlaylistSummary> _userPlaylists = [];
+  List<ArtistSummary>? _userArtists;
+  bool _isLoadingPlaylists = true;
+  bool _isLoadingArtists = false;
+  String? _error;
+  String _selectedFilter = "playlists";
 
   @override
   void initState() {
     super.initState();
-    _loadTracks();
+    _loadUserPlaylists();
   }
 
-  Future<void> _loadTracks() async {
+  Future<void> _loadUserPlaylists() async {
+    final playlists = await PlaylistService().getUserPlaylists(widget.userId);
+    setState(() {
+      _userPlaylists = playlists;
+    });
+
     try {
+      final playlists = await _playlistService.getUserPlaylists(widget.userId);
       setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
-
-      final tracks = await JellyfinService.getAllTracks();
-
-      setState(() {
-        _tracks = tracks;
-        _isLoading = false;
+        _userPlaylists = playlists;
+        _isLoadingPlaylists = false;
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Error al cargar las canciones: $e';
-        _isLoading = false;
+        _error = 'Error al cargar playlists: $e';
+        _isLoadingPlaylists = false;
       });
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return MainLayout(
-      child: Scaffold(
-        backgroundColor: context.colors.background,
-        appBar: AppBar(
-          backgroundColor: context.colors.background,
-          elevation: 0,
-          title: Text(
-            'Biblioteca Musical',
-            style: TextStyle(
-              color: context.colors.text,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.refresh, color: context.colors.text),
-              onPressed: _loadTracks,
-            ),
-          ],
-        ),
-        body: _buildBody(),
-      ),
-    );
-  }
+  Future<void> _loadUserArtists() async {
+    if (_userArtists != null && _selectedFilter != 'artists') return;
 
-  Widget _buildBody() {
-    if (_isLoading) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(color: context.primaryColor),
-            const SizedBox(height: 16),
-            Text(
-              'Cargando canciones...',
-              style: TextStyle(color: context.colors.text),
-            ),
-          ],
-        ),
-      );
-    }
+    setState(() {
+      _isLoadingArtists = true;
+      _error = null;
+    });
 
-    if (_errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: context.colors.text.withOpacity(0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _errorMessage!,
-              style: TextStyle(color: context.colors.text),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadTracks,
-              child: const Text('Reintentar'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (_tracks == null || _tracks!.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.music_off,
-              size: 64,
-              color: context.colors.text.withOpacity(0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No se encontraron canciones',
-              style: TextStyle(color: context.colors.text),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _tracks!.length,
-      itemBuilder: (context, index) {
-        final track = _tracks![index];
-        return _TrackTile(
-          track: track,
-          onTap: () => _playTrack(track, index),
-        );
-      },
-    );
-  }
-
-  Future<void> _playTrack(JellyfinTrack track, int index) async {
     try {
-      final badBunnyTrack = _tracks!.firstWhere(
-        (t) => t.id == '5e8be675d5e30a4c8eb05bc4f43abafe',
-        orElse: () => _tracks!.isNotEmpty ? _tracks!.first : track,
-      );
+      final artists = await _artistService.getUserArtists();
+      setState(() {
+        _userArtists = artists;
+        _isLoadingArtists = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'Error al cargar artistas: $e';
+        _isLoadingArtists = false;
+      });
+    }
+  }
 
-      await PlayerService.instance.playJellyfinTrack(
-        badBunnyTrack,
-        playlist: _tracks!,
-        index: _tracks!.indexOf(badBunnyTrack),
-      );
-
-      // Solo mostrar mini player, NO navegar automáticamente
-      PlayerService.instance.showMiniPlayer();
-
+  Future<void> _deletePlaylist(int playlistId) async {
+    try {
+      await _playlistService.deletePlaylist(playlistId);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Reproduciendo ${badBunnyTrack.name}'),
-            duration: const Duration(seconds: 2),
+          const SnackBar(
+            content: Text('Playlist eliminada correctamente'),
+            duration: Duration(seconds: 2),
           ),
         );
+        _loadUserPlaylists(); // Recargar la lista de playlists
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al reproducir: $e'),
-            backgroundColor: Colors.red,
+            content: Text('Error al eliminar playlist: $e'),
+            duration: Duration(seconds: 2),
           ),
         );
       }
     }
   }
-}
 
-class _TrackTile extends StatelessWidget {
-  final JellyfinTrack track;
-  final VoidCallback onTap;
+  void _navigateToCreatePlaylist() async {
+    final created = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const CreatePlaylistScreen()),
+    );
+    if (created == true && mounted) {
+      _loadUserPlaylists();
+    }
+  }
 
-  const _TrackTile({
-    required this.track,
-    required this.onTap,
-  });
+  void _onFilterSelected(String filter) {
+    setState(() {
+      _selectedFilter = filter;
+    });
+
+    if (filter == "playlists") {
+      _loadUserPlaylists();
+    } else if (filter == "artists") {
+      _loadUserArtists();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: context.colors.card1,
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: track.imageUrl != null
-              ? Image.network(
-                  track.imageUrl!,
-                  width: 56,
-                  height: 56,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _buildDefaultIcon(context),
-                )
-              : _buildDefaultIcon(context),
+    return Scaffold(
+      backgroundColor: context.colors.background,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          if (_selectedFilter == "playlists") {
+            await _loadUserPlaylists();
+          } else {
+            await _loadUserArtists();
+          }
+        },
+        child: LibraryContent(
+          userPlaylists: _userPlaylists,
+          userArtists: _userArtists,
+          isLoadingUserPlaylists: _isLoadingPlaylists,
+          isLoadingUserArtists: _isLoadingArtists,
+          onPlaylistsUpdated: _loadUserPlaylists,
+          onPlaylistTap: (id, name) {
+            // Navegación a playlist
+          },
+          onDelete: (playlistId) async { // Callback directo para eliminar
+            await _deletePlaylist(playlistId);
+          },
+          onCreatePlaylist: _navigateToCreatePlaylist,
+          selectedFilter: _selectedFilter,
+          onFilterSelected: _onFilterSelected,
+          error: _error,
         ),
-        title: Text(
-          track.name,
-          style: TextStyle(
-            color: context.colors.text,
-            fontWeight: FontWeight.w600,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Text(
-          track.primaryArtist,
-          style: TextStyle(
-            color: context.colors.text.withOpacity(0.7),
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: Icon(
-          Icons.play_arrow,
-          color: context.primaryColor,
-        ),
-        onTap: onTap,
-      ),
-    );
-  }
-
-  Widget _buildDefaultIcon(BuildContext context) {
-    return Container(
-      width: 56,
-      height: 56,
-      color: context.colors.lightGray,
-      child: Icon(
-        Icons.music_note,
-        color: context.colors.text.withOpacity(0.5),
       ),
     );
   }

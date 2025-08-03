@@ -37,7 +37,7 @@ class Song {
       albumId: json['albumId'],
       duration: json['duration'],
       id: json['id'].toString(),
-      picture: json['imageUrl'],
+      picture: json['imageUrl'] ?? JellyfinService.getImageUrl(json['itemId']),
       albumPrimaryImageTag: json['albumPrimaryImageTag'],
       container: json['container'],
     );

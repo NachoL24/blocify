@@ -54,7 +54,7 @@ class PlaylistHeader extends StatelessWidget {
               child: Text(
                 playlist.name,
                 style: TextStyle(
-                  color: context.colors.text,
+                  color: Colors.white,
                   fontSize: 36,
                   fontWeight: FontWeight.w600,
                 ),

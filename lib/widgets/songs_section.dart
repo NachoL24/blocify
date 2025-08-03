@@ -6,15 +6,22 @@ import '../widgets/song_tile.dart';
 class SongsSection extends StatelessWidget {
   final List<Song> songs;
   final Function(Song) onSongTap;
+  final Function(Song) onRemove;
+  final Function(Song) onAddToBlock;
+  final SongTileMode mode;
 
   const SongsSection({
     super.key,
     required this.songs,
     required this.onSongTap,
+    required this.onRemove,
+    required this.onAddToBlock,
+    required this.mode,
   });
 
   @override
   Widget build(BuildContext context) {
+    print('Rendering ${songs.length} canciones sueltas');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -29,13 +36,16 @@ class SongsSection extends StatelessWidget {
         const SizedBox(height: 12),
         ListView.builder(
           shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
+          physics: NeverScrollableScrollPhysics(),
           itemCount: songs.length,
           itemBuilder: (context, index) {
             final song = songs[index];
             return SongTile(
               song: song,
               onTap: () => onSongTap(song),
+              onRemove: () => onRemove(song),
+              onAddToBlock: () => onAddToBlock(song),
+              mode: mode,
             );
           },
         ),
