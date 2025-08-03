@@ -120,7 +120,7 @@ class PlaylistService {
     try {
       final response = await _httpService.get('/api/playlists/discover');
       if (response.statusCode == 200) {
-        final playlistsJson = [jsonDecode(response.body)];
+        final playlistsJson = jsonDecode(response.body) as List<dynamic>;
         return playlistsJson
             .map((json) => PlaylistSummary.fromJson(json))
             .toList();
