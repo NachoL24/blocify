@@ -57,19 +57,20 @@ class SongTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             child: song.picture != null && song.picture!.isNotEmpty
                 ? Image.network(
-              song.picture!,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  color: _getRandomColor(),
-                  child: const Icon(Icons.music_note, color: Colors.white),
-                );
-              },
-            )
+                    song.picture!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: _getRandomColor(),
+                        child:
+                            const Icon(Icons.music_note, color: Colors.white),
+                      );
+                    },
+                  )
                 : Container(
-              color: _getRandomColor(),
-              child: const Icon(Icons.music_note, color: Colors.white),
-            ),
+                    color: _getRandomColor(),
+                    child: const Icon(Icons.music_note, color: Colors.white),
+                  ),
           ),
         ),
         title: Text(
@@ -81,31 +82,31 @@ class SongTile extends StatelessWidget {
         ),
         subtitle: showAlbum && song.album.isNotEmpty
             ? Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              song.artist,
-              style: TextStyle(
-                color: context.colors.secondaryText,
-                fontSize: 14,
-              ),
-            ),
-            Text(
-              song.album,
-              style: TextStyle(
-                color: context.colors.secondaryText.withOpacity(0.7),
-                fontSize: 12,
-              ),
-            ),
-          ],
-        )
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    song.artist,
+                    style: TextStyle(
+                      color: context.colors.secondaryText,
+                      fontSize: 14,
+                    ),
+                  ),
+                  Text(
+                    song.album,
+                    style: TextStyle(
+                      color: context.colors.secondaryText.withOpacity(0.7),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              )
             : Text(
-          song.artist,
-          style: TextStyle(
-            color: context.colors.secondaryText,
-            fontSize: 14,
-          ),
-        ),
+                song.artist,
+                style: TextStyle(
+                  color: context.colors.secondaryText,
+                  fontSize: 14,
+                ),
+              ),
         trailing: PopupMenuButton<String>(
           icon: Icon(Icons.more_horiz, color: context.colors.secondaryText),
           onSelected: (value) {
@@ -125,49 +126,53 @@ class SongTile extends StatelessWidget {
             switch (mode) {
               case SongTileMode.playlist:
                 return [
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'addToBlock',
                     child: Row(
                       children: [
-                        Icon(Icons.add, color: Colors.white, size: 20),
+                        Icon(Icons.add, color: context.colors.text, size: 20),
                         SizedBox(width: 8),
-                        Text('Añadir a Bloque', style: TextStyle(color: Colors.white)),
+                        Text('Añadir a Bloque',
+                            style: TextStyle(color: context.colors.text)),
                       ],
                     ),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'remove',
                     child: Row(
                       children: [
                         Icon(Icons.delete, color: Colors.red, size: 20),
                         SizedBox(width: 8),
-                        Text('Eliminar de la Playlist', style: TextStyle(color: Colors.red)),
+                        Text('Eliminar de la Playlist',
+                            style: TextStyle(color: Colors.red)),
                       ],
                     ),
                   ),
                 ];
               case SongTileMode.search:
                 return [
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'addToPlaylist',
                     child: Row(
                       children: [
-                        Icon(Icons.add, color: Colors.white, size: 20),
+                        Icon(Icons.add, color: context.colors.text, size: 20),
                         SizedBox(width: 8),
-                        Text('Añadir a Playlist', style: TextStyle(color: Colors.white)),
+                        Text('Añadir a Playlist',
+                            style: TextStyle(color: context.colors.text)),
                       ],
                     ),
                   ),
                 ];
               case SongTileMode.block:
                 return [
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'remove',
                     child: Row(
                       children: [
                         Icon(Icons.delete, color: Colors.red, size: 20),
                         SizedBox(width: 8),
-                        Text('Eliminar del bloque', style: TextStyle(color: Colors.red)),
+                        Text('Eliminar del bloque',
+                            style: TextStyle(color: Colors.red)),
                       ],
                     ),
                   ),

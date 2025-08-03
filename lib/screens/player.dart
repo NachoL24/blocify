@@ -84,18 +84,6 @@ class _PlayerPageState extends State<PlayerPage> {
           ),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(
-              Icons.more_horiz,
-              color: context.colors.text,
-              size: 24,
-            ),
-            onPressed: () {
-              // TODO: Implementar más opciones
-            },
-          ),
-        ],
       ),
       body: AnimatedBuilder(
         animation: _playerService,
@@ -268,10 +256,12 @@ class _PlayerPageState extends State<PlayerPage> {
                                       Icons.shuffle,
                                       color: _playerService.isRandomMode
                                           ? context.colors.primary
-                                          : context.colors.text.withOpacity(0.7),
+                                          : context.colors.text
+                                              .withOpacity(0.7),
                                     ),
                                     onPressed: () {
-                                      _playerService.setRandomMode(!_playerService.isRandomMode);
+                                      _playerService.setRandomMode(
+                                          !_playerService.isRandomMode);
                                     },
                                   ),
 
@@ -332,7 +322,8 @@ class _PlayerPageState extends State<PlayerPage> {
                                       _playerService.loopIcon,
                                       color: _playerService.loopMode > 0
                                           ? context.colors.primary
-                                          : context.colors.text.withOpacity(0.7),
+                                          : context.colors.text
+                                              .withOpacity(0.7),
                                     ),
                                     onPressed: () {
                                       _playerService.toggleLoopMode();
@@ -343,20 +334,24 @@ class _PlayerPageState extends State<PlayerPage> {
                               ),
 
                               // Controles de bloques (solo si está activado el modo blocks)
-                              if (_playerService.isBlockMode && _playerService.currentPlaylistId != null) ...[
+                              if (_playerService.isBlockMode &&
+                                  _playerService.currentPlaylistId != null) ...[
                                 const SizedBox(height: 16),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 8),
                                   decoration: BoxDecoration(
                                     color: context.colors.surface,
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: context.colors.text.withOpacity(0.3),
+                                      color:
+                                          context.colors.text.withOpacity(0.3),
                                       width: 1,
                                     ),
                                   ),
                                   child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
                                     children: [
                                       // Botón bloque anterior
                                       IconButton(
@@ -371,10 +366,13 @@ class _PlayerPageState extends State<PlayerPage> {
 
                                       // Indicador de modo blocks
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 6),
                                         decoration: BoxDecoration(
-                                          color: context.colors.text.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(16),
+                                          color: context.colors.text
+                                              .withOpacity(0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(16),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
@@ -386,7 +384,8 @@ class _PlayerPageState extends State<PlayerPage> {
                                             ),
                                             const SizedBox(width: 4),
                                             Text(
-                                              _playerService.currentBlockName ?? 'Blocks',
+                                              _playerService.currentBlockName ??
+                                                  'Blocks',
                                               style: TextStyle(
                                                 color: context.colors.text,
                                                 fontSize: 12,
