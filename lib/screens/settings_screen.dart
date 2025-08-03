@@ -259,12 +259,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await _auth0Service.logout();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al cerrar sesión: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        // Toast eliminado
       }
     }
   }

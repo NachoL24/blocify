@@ -54,12 +54,6 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
         setState(() {
           _isLoading = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al cargar playlist: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
       }
     }
   }
@@ -170,12 +164,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                             }
                           } catch (e) {
                             if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Error: ${e.toString()}'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
+                              // Toast eliminado
                             }
                           }
                         }
@@ -206,9 +195,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       );
       await _loadPlaylistDetails();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al quitar canción: $e')),
-      );
+      // Toast eliminado
     }
   }
 
@@ -232,9 +219,6 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     if (selectedBlock != null) {
       final alreadyExists = selectedBlock.songs.any((s) => s.id == song.id);
       if (alreadyExists) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ya está en el bloque')),
-        );
         return;
       }
 
@@ -246,9 +230,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
         );
         await _loadPlaylistDetails();
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al agregar al bloque: $e')),
-        );
+        // Toast eliminado
       }
     }
   }
@@ -302,26 +284,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
             final index = tracks.indexWhere((t) => t.id == track.id);
 
             await playerService.playJellyfinTrack(track, playlist: tracks, index: index);
-
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Reproduciendo ${song.name}'),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-            }
           } catch (e) {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content:
-                  Text('Error al reproducir: ${e.toString()}'),
-                  backgroundColor: Colors.red,
-                  duration: const Duration(seconds: 3),
-                ),
-              );
-            }
           }
         },
         onBlockTap: (block) async {
@@ -331,25 +294,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
               playlistId: widget.playlistId,
               blockId: block.id,
             );
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Reproduciendo bloque ${block.name}'),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-            }
           } catch (e) {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content:
-                  Text('Error al reproducir bloque: ${e.toString()}'),
-                  backgroundColor: Colors.red,
-                  duration: const Duration(seconds: 3),
-                ),
-              );
-            }
           }
         },
         isOwner: widget.isOwner,

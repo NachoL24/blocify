@@ -84,22 +84,11 @@ class _MusicLibraryScreenState extends State<MusicLibraryScreen> {
     try {
       await _playlistService.deletePlaylist(playlistId);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Playlist eliminada correctamente'),
-            duration: Duration(seconds: 2),
-          ),
-        );
         _loadUserPlaylists(); // Recargar la lista de playlists
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al eliminar playlist: $e'),
-            duration: Duration(seconds: 2),
-          ),
-        );
+        // Manejo de error eliminado
       }
     }
   }
