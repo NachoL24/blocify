@@ -40,14 +40,7 @@ class SearchResultsList extends StatelessWidget {
           playlistId: selected.id,
           song: song,
         );
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Añadido a ${selected.name}')),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
+      } catch (e) {}
     }
   }
 

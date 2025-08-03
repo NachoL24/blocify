@@ -47,12 +47,6 @@ class _SearchScreenState extends State<SearchScreen> {
         setState(() {
           _isLoading = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al cargar contenido inicial: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
       }
     }
   }
@@ -82,12 +76,6 @@ class _SearchScreenState extends State<SearchScreen> {
         setState(() {
           _isLoading = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al buscar: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
       }
     }
   }
@@ -154,24 +142,8 @@ class _SearchScreenState extends State<SearchScreen> {
                                       playlist: jellyfinPlaylist);
 
                                   // El mini player se mostrará automáticamente
-
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                            'Reproduciendo ${jellyfinTrack.name}'),
-                                        duration: const Duration(seconds: 2),
-                                      ),
-                                    );
-                                  }
                                 } catch (e) {
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                          content:
-                                              Text('Error al reproducir: $e')),
-                                    );
-                                  }
+                                  // Toast eliminado
                                 }
                               },
                             ),

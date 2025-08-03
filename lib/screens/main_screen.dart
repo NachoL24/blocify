@@ -131,16 +131,11 @@ class _MainScreenState extends State<MainScreen> {
     try {
       await PlaylistService.instance.deletePlaylist(playlistId);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Playlist eliminada correctamente')),
-        );
         _loadUserPlaylists(); // Recargar la lista
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al eliminar: ${e.toString()}')),
-        );
+        // Toast eliminado
       }
     }
   }
@@ -175,12 +170,7 @@ class _MainScreenState extends State<MainScreen> {
 
   void _handleError(String resource, dynamic error) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al cargar $resource: ${error.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      // Toast eliminado
     }
   }
 
